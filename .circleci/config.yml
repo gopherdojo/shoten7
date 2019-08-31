@@ -1,0 +1,52 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # vvakame/review imageにgdriveのmasterブランチをgo getしたものを含んだimage
+      - image: budougumi0617/review-uploader:latest
+        user: root
+        environment:
+          REVIEWDOG_VERSION: 0.9.12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Setup
+          command: |
+            # --unsafe-perm付きではtextlintがインストールされないので二度行なう
+            npm install
+            # https://til.codes/npm-install-failed-with-cannot-run-in-wd-2/
+            npm install -g --unsafe-perm
+      - save_cache:
+          key: npm-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: install reviewdog
+          command: "curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s  v$REVIEWDOG_VERSION"
+      - run:
+          name: lint
+          command: "$(npm bin)/textlint -f checkstyle articles/*.re | tee check_result"
+      - run:
+          name: reviewdog
+          command: >
+              if [ -n "$REVIEWDOG_GITHUB_API_TOKEN" ]; then
+                cat check_result | ./bin/reviewdog -f=checkstyle -name=textlint -reporter=github-pr-review
+              fi
+          when: on_fail
+      - run:
+          name: Build PDF
+          command: npm run pdf
+      - run:
+          name: Move PDF
+          command: |
+            mv ./articles/gopherdojo_shoten7.pdf ./${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}.pdf
+      - run:
+          name: Upload PDF
+          command: |
+            # 環境変数から認証情報を取得してJSONファイルに出力
+            echo $GOOGLE_SERVICE_ACCOUNT_CREDENTIAL > credential.json
+            # Upload to https://drive.google.com/drive/folders/1VZJKEebgRK7yNZrtlHrSw_q0fewCdF4T
+            gdrive --config $(pwd) --service-account credential.json upload -p 1VZJKEebgRK7yNZrtlHrSw_q0fewCdF4T ./${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}.pdf
