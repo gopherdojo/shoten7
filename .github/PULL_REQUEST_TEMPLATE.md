@@ -7,4 +7,4 @@ PRの内容はPDFにビルドされて次のURLのGoogle Driveディレクトリ
 
 *TODO 同じ名前のファイルが何個も作成されてしまうのでどうにかする*
 
-https://drive.google.com/drive/folders/1VZJKEebgRK7yNZrtlHrSw_q0fewCdF4T
+https://drive.google.com/drive/folders/1SuNsIJrh4jlBveR9pGTgPysRXj_dp-N6

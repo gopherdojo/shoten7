@@ -48,5 +48,5 @@ jobs:
           command: |
             # 環境変数から認証情報を取得してJSONファイルに出力
             echo $GOOGLE_SERVICE_ACCOUNT_CREDENTIAL > credential.json
-            # Upload to https://drive.google.com/drive/folders/1VZJKEebgRK7yNZrtlHrSw_q0fewCdF4T
+            # Upload to https://drive.google.com/drive/folders/1SuNsIJrh4jlBveR9pGTgPysRXj_dp-N6
             gdrive --config $(pwd) --service-account credential.json upload -p 1SuNsIJrh4jlBveR9pGTgPysRXj_dp-N6 ./${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}.pdf

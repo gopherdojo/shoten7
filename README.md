@@ -30,7 +30,7 @@ build           Build PDF in Docker
 
 PRを作成すると、GoogleドライブにビルドしたPDFが保存されます。
 
-https://drive.google.com/drive/folders/1VZJKEebgRK7yNZrtlHrSw_q0fewCdF4T
+https://drive.google.com/drive/folders/1SuNsIJrh4jlBveR9pGTgPysRXj_dp-N6
 
 アクセス権限がない場合はSlackで@tenntennまでお知らせください。権限付与します。
 
