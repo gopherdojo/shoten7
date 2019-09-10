@@ -45,34 +45,34 @@ DB接続エラーだけみてもそれがどのような影響をるのかわか
 →うまく階層化されておらず、２階層下のエラー情報が取れない
 →pkg/errorsで書き直した。
 
-エラーを階層化してもてるという事で最初はpkg/errorsを使ったエラーハンドリングを検討しました。
+エラーを階層化してもているということで最初はpkg/errorsを使ったエラーハンドリングを検討しました。
 
-TODO コード貼る
+ToDo コード貼る
 
-上記のコードでエラーをラップする事ができてそうですが実際はエラー文言を引き継いでいるだけで、２段階前のエラー情報を階層として持たすことができません。
-pkg/errorsを使いつつエラーを階層化して保持できないだろうかという事を考えるにあたり、pkg/errosをより深掘りしていきます
+上記のコードでエラーをラップできてそうですが実際はエラー文言を引き継いでいるだけで、２段階前のエラー情報を階層として持たすことができません。
+pkg/errorsを使5つエラーを階層化して保持できないだろうかということを考えるにあたり、pkg/errosをより深掘りしていきます
 
 == pkg/errorsの動作とできることを理解する
 
-pkg/errorsは非常にシンプルなライブラリで、ファイルも数ファイルのみでコードも読みやすいです。実際に読んでみると以下の機能に集約される事がわかります。
+pkg/errorsは非常にシンプルなライブラリで、ファイルも数ファイルのみでコードも読みやすいです。実際に読んでみると次の機能に集約されることがわかります。
 
 * エラー内容を階層化して保存する
 * スタックトレースを取得する
 
-それぞれの機能は以下のように実現されています
+それぞれの機能は次のように実現されています
 * エラー内容を階層化して保存するA
 エラーは図に示すような構造体となって階層状に保存されていきます。
 
-WithMessageはCause()というcauseを返す関数を持ちます。Caseu()関数をもつcauserインターフェイスを定義し、errがcauserに変換できるかを再帰処理で調べていき、オリジナルのエラーはCause()関数を持たないため、それでオリジナルのエラーを判別することができます。
+WithMessageはCause（)というcauseを返す関数を持ちます。Caseu(）関数をもつcauserインタフェースを定義し、errがcauserに変換できるかを再帰処理で調べていき、オリジナルのエラーはCause()関数を持たないため、それでオリジナルのエラーを判別できます。
 
 //list[Cause][階層化したエラーのオリジナルを取得する関数][go]
-func Cause(err error) error {
+func Cause（err error） error {
 	type causer interface {
 		Cause() error
 	}
 
 	for err != nil {
-		cause, ok := err.(causer)
+		cause, ok := err.（causer）
 		if !ok {
 			break
 		}
@@ -84,8 +84,8 @@ func Cause(err error) error {
 
 * スタックトレースを取得する
 スタックトレースは、ファイル名と関数名、行数で構成されていますが
-それぞれruntimeパッケージを利用する事で取得する事が可能です。
-シンプルにruntimeパッケージを使って情報を取得するには以下のような関数になります。
+それぞれruntimeパッケージを利用することで取得することが可能です。
+シンプルにruntimeパッケージを使って情報を取得するには次のような関数になります。
 
 
 //list[runtime][ランタイムパッケージを使用した情報取得][go]
@@ -100,18 +100,18 @@ func main() {
 
     const depth = 32
     var pcs [depth]uintptr
-    n := runtime.Callers(0, pcs[:])
+    n := runtime.Callers（0, pcs[:]）
 
     var st []uintptr = pcs[0:n]
     for _, f := range st {
-        fn := runtime.FuncForPC(f)
-        file, line := fn.FileLine(f)
-        fmt.Println(fn.Name(),file, line)
+        fn := runtime.FuncForPC（f）
+        file, LINE := fn.FileLine（f）
+        fmt.Println（fn.Name(）,file, LINE)
     }
 }
 //}
 
-これをGo Playgroud上で動かすと(https://play.golang.org/p/CN09KGDu6UC)
+これをGo Playground上で動かすと（https://play.golang.org/p/CN09KGDu6UC）
 
 //emlist[][]{
 runtime.Callers /usr/local/go/src/runtime/extern.go 211
