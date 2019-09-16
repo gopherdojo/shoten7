@@ -131,7 +131,7 @@ pkg/errorsは非常にシンプルなライブラリで、ファイルも数フ�
  * エラー内容を階層化して保存する。
  * スタックトレースを取得する。
 
-それぞれの機能は次のように実現されています
+それぞれの機能は次のように実現されています。
 
  * エラー内容を階層化して保存する。
 
@@ -192,7 +192,7 @@ func main() {
 }
 //}
 
-これを動かすと
+これを動かすと次のようになります。
 
 //list[runtimeresult][実行結果]{
 runtime.Callers /usr/local/go/src/runtime/extern.go 211
@@ -200,7 +200,8 @@ main.main /tmp/sandbox099384991/prog.go 12
 runtime.main /usr/local/go/src/runtime/proc.go 212
 runtime.goexit /usr/local/go/src/runtime/asm_amd64p32.s 523
 //}
-となり、しっかりruntime.Callerを読んだ場所と、runtime.Callerを呼んでいる関数が取得できます。
+
+しっかりruntime.Callerを読んだ場所と、runtime.Callerを呼んでいる関数が取得できます。
 pkg/errorsでも同様にruntimeパッケージを利用して、情報を取得し整形してスタックトレースとしています。
 
 以上がpkg/errorsの挙動となりますが、これを踏まえると階層化しているデータはメッセージのみなのでそれ以外の情報を持たせるようにし、
@@ -314,7 +315,7 @@ GopherCon2019で発表されたathensというプロジェクトでもerror hand
 それもそのはずで、athensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
 error handling in goで発表された内容の詳細な実例として見ることができるでしょう。
 
-//emlist[エラー構造体(/pkg/errors/errors.go)][go]{
+//emlist[エラー構造体（/pkg/errors/errors.go）][go]{
 // Error is an Athens system error.
 // It carries information and behavior
 // as to what caused this error so that
