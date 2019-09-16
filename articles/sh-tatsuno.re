@@ -2,51 +2,58 @@
 
 == たかがテスト、されどテスト
 
-自分はソフトウェアエンジニア、ないしgolangを初めて約1年になります。プログラミングとしては多少触れていたのですが、
+#@# textlint-disable
+
+自分はソフトウェアエンジニア、ないしgolangをはじめて約1年になります。プログラミングとしては多少触れていたのですが、
 プロダクションレベルの品質は何かということを考えるにあたってテストコードがいかに大事かということが分かってきました。
+
+#@# textlint-enable
 
 テストコードそのものは機能開発などと異なり、事業価値に直接貢献するものではありません。
 しかしながら、継続的にサービスを改善して拡大していく過程においてテストは極めて大きな影響をもたらします。
 
-golangはテストが非常に書きやすい(個人談)ですが、実際には色々なテストのパターンが存在したり、
-そもそもテストをどうやって書けばいいのかというのはずっと悩みでした。本章ではこのあたりのテストの書き方についてユースケースに基づいて書き方を洗っていきます。
-実際の業務や趣味でgolangを書く際の一助に慣れればと思います。
+golangはテストが非常に書きやすい（個人談）ですが、実際にはいろいろなテストのパターンが存在したり、
+そもそもテストをどうやって書けばいいのかというのはずっと悩みでした。本章ではこのあたりのテストの書き方についてユースケースにもとづて書き方を洗っていきます。
+実際の業務や趣味でgolangを書く際の一助に慣れれば幸いです。
 
 ※ 本記事ではテストの書き方のバリエーションにフォーカスしたいので、一部エラーハンドリングすべき部分を行っていない箇所があります。ご了承ください。
 
 ==  テストコードの思想
 
 === そもそもなぜテストが必要か
-テストコードが大事な理由は古今東西色々なところで言われています。が、あえて自分で咀嚼してみると、大きく下記の2点かと思います。
-* テスト工程で出力すべきバグを早期に発見し、工程上の手戻りを減らすため
-* コードを改善・書き換える際にそのコードが元のコードに対して良いか悪いかを判断するため
+テストコードが大事な理由は古今東西いろいろなところでいわれています。が、あえて自分で咀嚼してみると、大きく次の2点になります。
+* テスト工程で出力すべきバグを早期に発見し、工程上の手戻りを減らすため。
+* コードを改善・書き換える際にそのコードが元のコードに対してよいか悪いかを判断するため。
 
-自分の個人プロジェクトレベルならまだ良いですが、いろいろな人が数多く携わり、肥大化していったコードに対して、
+自分の個人プロジェクトレベルならまだよいですが、いろいろな人が数多く携わり肥大化していったコードに対して、
 特定の場所のコードを書き換える場合の影響範囲を完全に特定することは至難の業です。
 
-テストコードを書いておけば、コードの最低限の品質が担保できますし、良いテストコードを書くことができれば
-プロジェクトの中でも同じようなテストコードの書き方をしていくことで全体的なレベルアップにも繋がります。
+テストコードを書いておけば、コードの最低限の品質が担保できますし、よいテストコードを書くことができれば
+プロジェクトの中でも同じようなテストコードの書き方をしていくことで全体的なレベルアップにもつながります。
 
 === テストケースが満たすべき内容とは
-テストをどの程度書くべきかという話は色々な人が触れているので、ここではそこまで言及はしません。
-ただ、自分がよく業務でテストを書く際は以下を意識しています
-* 必要十分な最小のケースを記載する
-* テストする関数が影響する範囲だけテストする
-* 可読性を意識する。Goの場合は特にケースごとのI/Oとロジックを分離するように書く
-* 変にテストの変数を使い回さない
+テストをどの程度書くべきかという話はいろいろな人が触れているので、ここではそこまで言及はしません。
+ただ、自分がよく業務でテストを書く際は以下を意識しています。
+* 必要十分な最小のケースを記載する。
+* テストする関数が影響する範囲だけテストする。
+* 可読性を意識する。Goの場合は特にケースごとのI/Oとロジックを分離するように書く。
+* 変にテストの変数を使い回さない。
 
 テストの目的はコードの改善速度や不具合検出率を上げるため、コードの良し悪しを判断するためというのが前項で触れた部分です。
 そのため、過度にテストのケースを書くことや、テストそのものが長くなりすぎて何をしているか分からないコードは作ったところでそのテストそのものがメンテナンス性に欠けてしまいます。
 
 もちろん、リリース最優先の場合などはテストを後回しにする場合もあります。
-ただ、後でテストコードを書くといっても、そのタイミングが後回しにされて結局立ち消えになるケースが多いです。
-うまく動いているように見えるコードのテストコード＜＜次のエンハンス、となりがちです。
+ただ、あとでテストコードを書くといっても、そのタイミングが後回しにされて結局立ち消えになるケースが多いです。
+うまく動いているように見えるコードのテストコード＜次のエンハンス、となりがちです。
 
-もしテストが後回しになる場合は、予めスケジュールに組み込む、テストを書く工数を捻出する予定を直近のプロジェクト後に検討しておく、など
-仕組みとしてカバーしておくことをオススメします。
+#@# textlint-disable
+
+もしテストが後回しになる場合はあらかじめスケジュールに組み込む、テストを書く工数を捻出する予定を直近のプロジェクト後に検討しておく、など仕組みとしてカバーしておくことをオススメします。
+
+#@# textlint-enable
 
 === テストの網羅性についての調査
-テストがどれくらい網羅性があるかをチェックする場合はテストカバレッジを調査すれば良いでしょう。
+テストがどれくらい網羅性があるかをチェックする場合はテストカバレッジを調査すればよいでしょう。
 goの場合はこのカバレッジを簡単に調べることができます。
 
 //source[console]{
@@ -58,7 +65,7 @@ $ go test -cover sample(パッケージ名)
 $ go test -coverprofile=cover.out sample(パッケージ名)
 //}
 
-また、以下のようにhtml形式で出力することもできます。
+また、次のようにhtml形式で出力することもできます。
 //source[console]{
 $ go tool cover -html=profile
 //}
@@ -66,16 +73,16 @@ $ go tool cover -html=profile
 == 通常のテスト
 
 === 基本的な書き方
-まずは基本的なあテストの書き方です。"hello!"とだけ返す関数のテストを考えてみます。
+まずは基本的なあテストの書き方です。"hello"とだけ返す関数のテストを考えてみます。
 
 //source[hello.go]{
 func Hello()string{
-    return "hello!"
+    return "hello"
 }
 //}
 
-テストのファイルはテストされるファイルに_testをつけたものが良いです。
-また、テスト関数は頭にtestの文字を付けておく事が通例です。
+テストのファイルはテストされるファイルに_testを付け足ものがよいです。
+また、テスト関数は頭にtestの文字を付けておくことが通例です。
 
 //source[hello_test.go]{
 import (
@@ -85,7 +92,7 @@ import (
 func testHello(t *testing.T) {
     t.Helper() 
     actual := Hello()
-    expected = "hello!"
+    expected = "hello"
 
     if actual != expected {
         t.Errorf("result does not match. actual: %v, expected: %v", actual, expected)
@@ -95,12 +102,12 @@ func testHello(t *testing.T) {
 
 このテストコードでは、期待されているあたいかどうかをチェックして異なる場合はエラーを出力するようにしています。
 
-go1.9からt.Helper()が追加されるようになりました。t.Helper()を一行書いておくとどの行でテストが落ちたかわかるようになります。
+go1.9からt.Helper（)が追加されるようになりました。t.Helper(）を一行書いておくとどの行でテストが落ちたか分かます。
 go1.9以降を利用している場合は入れておいて損することは基本ないので、テストには必ず足しておきましょう。
 
 === 複数のケースを扱う場合
 続いて、複数のケースのテストを行う場合を見てみましょう。
-例としてステップ関数を取り上げてみます(0より大きいと1、0より小さいと-1、0のときは0を出力する関数)
+例としてステップ関数を取り上げてみます（0より大きいと1、0より小さいと-1、0のときは0を出力する関数）
 
 //source[step.go]{
 func Step(n int) int {
@@ -161,13 +168,17 @@ func testStep(t *testing.T) {
 }
 //}
 
-このテスト方式を利用することで、入力とそれに対する期待値の部分とテストのロジック部分が分離されるためかなり見通しが良くなります。
+#@# textlint-disable
+
+このテスト方式を利用することで、入力とそれに対する期待値の部分とテストのロジック部分が分離されるためかなり見通しがよくなります。
+
+#@# textlint-enable
 
 === エラーの種類を確認したい場合 
 
-エラーハンドリングについては色々なパターンが考えられます。
+エラーハンドリングについてはいろいろなパターンが考えられます。
 一般的にやりがちなのがエラー文で比較することですが、これを行った場合、エラー文が変わった場合にテストが落ちてしまい頑強性がなくなるため避けたほうが無難です。  
-例えば、外部ライブラリを利用してエラーハンドリングをエラー文で判定していた場合、ライブラリアップデートでエラー文が微妙に変わったらそれだけでテストが失敗してしまいます。
+たとえ、外部ライブラリを利用してエラーハンドリングをエラー文で判定していた場合、ライブラリアップデートでエラー文が微妙に変わったらそれだけでテストが失敗してしまいます。
 
 そこで、ハンドリングが必要なエラーには型を持たせ、それを判定することで必要なエラーハンドリングを行います。
 
@@ -199,17 +210,17 @@ func newTempError(code int) error {
 func main() {
 	err := newTempError(100)
 	fmt.Printf("%+v\n", err)
-	
+
 	if v, ok := err.(TempError); ok {
 		fmt.Printf("%v", v.Code)
 	}
 }
 //}
 
-上記の例だと、Temporary Errorを独自定義して、そのコード値(今回の場合は100)を持たせ、最後に型アサーションを行って独自エラーのコードを抜いています。
+上記の例だとTemporary Errorを独自定義して、そのコード値（今回の場合は100）を持たせ、最後に型アサーションを行って独自エラーのコードを抜いています。
 こうした独自エラー型は実際はDBのエラーハンドリングやhttpリクエストのエラーハンドリングの際に利用します。
 
-例えば、DB周りのコード値のチェックを行いたい場合などは下記のようにコード値判定をすることで、実際にそのコード値が出ているかどうかなどのテストが出来ます。
+たとえ、DB周りのコード値のチェックを行いたい場合などは次のようにコード値判定をすることで、実際にそのコード値が出ているかどうかなどのテストができます。
 //source[data_test.go]{
 
 type Data struct{
@@ -280,11 +291,16 @@ func testPerson(t *testing.T) {
 //}
 
 ちなみにreflect.DeepEqualを使う方法もあるのですが、time.Time型が入った比較などをする場合にはこれだと駄目なので
-(Monotonic clockか何かで厳密な秒数が一致してもテストが落ちることがあるみたいです)、go-cmpを使った方がベターです。
+（Monotonic clockか何かで厳密な秒数が一致してもテストが落ちることがあるみたいです）、go-cmpを使った方がベターです。
 
 === テスト時にconfigを書き換える
-CI環境やローカル環境で読み込む環境変数が変わる場合に切り替えが面倒な場合があります。
+
+#@# textlint-disable
+
+CI環境やローカル環境で読み込む環境変数が変わる場合、切り替えが面倒な場合があります。
 そのようなケースではconfigを直接書き換えるという方法もあります。
+
+#@# textlint-enable
 
 //source[make_url].go]{
 func makeURL()string{
@@ -301,7 +317,7 @@ import (
 
 func testURL(t *testing.T) {
     t.Helper() 
-    
+
     cfg := config.GetConfig() 
     orig := cfg.Server.Domain
     defer func(){cfg.Server.Domain = orig}()
@@ -321,12 +337,18 @@ func testURL(t *testing.T) {
 
 == I/Oが関係するテスト
 
+#@# textlint-disable
+
+本章では、他の関数や外部モジュールとのやりとり、入出力が発生する場合のテストの書き方について検討していきます。
+
+#@# textlint-enable
+
 === テストが行いやすい書き方
 
 前項における「テストする関数が影響する範囲だけテストする」という部分だけもう少し補足します。
-これは、関数内で別の関数を呼び出す場合や、DB/APIとの通信などの外部とのやり取りを行う場合にテスト範囲がその関数だけに收まるようにするという考え方です。
+これは、関数内で別の関数を呼び出す場合や、DB/APIとの通信などの外部とのやりとりを行う場合にテスト範囲がその関数だけに收まるようにするという考え方です。
 
-例えば、下記のようなケースでテストを行う場合を考えてみましょう
+たとえ、次のようなケースでテストを行う場合を考えてみましょう。
 //source[transform.go]{
 func Transform(i int) (string, error){
     d, err := GetData(i)
@@ -344,25 +366,25 @@ func Transform(i int) (string, error){
 //}
 
 何かDBから値を取得して、加工するメソッドです。
-この場合、これをそのままテストしようとすると、入力iを色々切り替えて、期待している値やエラーが返ってくるかをチェックすることになります。
-しかし、もしGetDataに問題があった場合、GetDataでエラーは出ているのに返り値はTransformからとなります。  
-つまり、Transformでエラーが出たことは分かるが、本当にGetDataが悪いのか、Transformのどこかで書き方をミスっているのかが判断しづらくなります。
+この場合、これをそのままテストしようとすると、入力iをいろいろ切り替えて、期待している値やエラーが返ってくるかをチェックすることになります。
+しかし、もしGetDataに問題があった場合、GetDataでエラーは出ているのに戻り値はTransformからとなります。  
+つまり、Transformでエラーが出たことは分かるが本当にGetDataが悪いのか、Transformのどこかで書き方をミスっているのかが判断しづらくなります。
 
 そのため、GetDataやConvertといった関数は本来的にはTransform関数と切り離して考えるべきです。
-つまり、GetDataについてテスト→Convertについてテスト→GetDataとConvertが期待値(正常系・異常系)を返してくれる前提でTransform関数をテスト
+つまり、GetDataについてテスト→Convertについてテスト→GetDataとConvertが期待値（正常系・異常系）を返してくれる前提でTransform関数をテスト
 という手順を踏むことで、問題が生じた場合も影響範囲の切り分けが容易になります。
 
 では、どのようにこうした関数の切り分けを行えばよいでしょうか。
 
-=== モックによるテスト TODO
-前述した通り、もし関数が別の関数に依存している場合、頭から入力値を入れるテストのみにしてしまうと、テスト結果が依存する関数に引きずられてしまうため、
+=== モックによるテスト ToDo
+前述したとおり、もし関数が別の関数に依存している場合に頭から入力値を入れるテストのみにしてしまうとテスト結果が依存する関数に引きずられてしまうため、
 テストが失敗した場合の問題の切り分けなどが難しくなりあまり好ましくありません。
-そこで、依存する関数については期待される動作をするモックを作ることで、テストをしたい関数の範囲だけテストをすることが出来ます。
+そこで、依存する関数については期待される動作をするモックを作ることで、テストをしたい関数の範囲だけテストをできます。
 
 golangの場合は、ある関数をモックするためにgo-mockというライブラリがあります。
-このライブラリを利用することで、必要なインターフェースを満たすmockを下記のコマンドで自動生成することができます。
+このライブラリを利用することで、必要なインタフェースを満たすmockを次のコマンドで自動生成できます。
 
-例えば、前述したTransfrom関数を下記のように書き換えましょう
+たとえば、前述したTransfrom関数を次のように書き換えましょう。
 //source[transform.go]{
 type Data struct {
     ID int
@@ -404,7 +426,7 @@ func newDataService() dataService {
 }
 
 func(s dataService) Transform(i int) (string, error){
-    
+
     d, err := s.dataRepo.GetData(i)
     if err != nil {
         return "", err
@@ -420,12 +442,12 @@ func(s dataService) Transform(i int) (string, error){
 //}
 
 やたら長くなりましたが、見るべきはTransformがdataServiceに紐付いていること、GetData並びにConvertがDataRepositoryに
-紐付いていること、そしてdataServiceを呼ぶ際にDataRepositoryInterfaceというインターフェースをstructに与えているところになります。
+紐付いていること、そしてdataServiceを呼ぶ際にDataRepositoryInterfaceというインタフェースをstructに与えているところになります。
 
-このように、インターフェース型を活用することで、例えばdataRepoの部分を、本当のdataRepositoryではなく、
-期待値を返してくれるモックに差し替えることで、関数ごとの責任範囲を分解してテストを行うことができるようになります。
+このように、インタフェース型を活用することでたとえdataRepoの部分を本当のdataRepositoryではなく
+期待値を返してくれるモックに差し替えることで、関数ごとの責任範囲を分解してテストを行うことができます。
 
-このモック、go-mockというライブラリを利用することで下記のようにCLIでモックを自動生成することができるようになります。
+このモック、go-mockというライブラリを利用することで次のようにCLIでモックを自動生成できます。
 //source[console]{
 $ mkdir mock
 $ mockgen -source transform.go DataRepositoryInterface >> mock/transform.go
@@ -441,7 +463,7 @@ import (
 
 func testTransform(t *testing.T) {
     t.Helper() 
-    
+
     mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
@@ -480,44 +502,75 @@ func testTransform(t *testing.T) {
     if diff := cmp.Diff(actual, expected); diff != ""{
         t.Errorf("diff: %s", diff)
     }
-    
+
 }
 //}
 
-=== http通信に対するテスト TODO
-http通信を行う場合、httpもmockを立てて、そこに対してリクエストを送ることで
+=== http通信に対するテスト
+http通信を行う場合、httpもモックを立てそこに対してリクエストを送る/レスポンスを返すことでテストが可能です。
+//source[http_test].go]{
+    func pingHandler() func(http.ResponseWriter, *http.Request) {
+        return func(w http.ResponseWriter, r *http.Request) {
+            w.Write([]byte("pong"))
+        }
+    }
+
+    func TestHttp(t *testing.T) {
+        // ### Given ###
+        s := httptest.NewServer(http.HandlerFunc(pingHandler()))
+        defer s.Close()
+
+        // ### When ###
+        res, err := http.Get(s.URL)
+        if err != nil {
+		    t.Errorf("failed to get: %v", err)
+	    }
+
+        defer res.Body.Close()
+        body, err := ioutil.ReadAll(res.Body)
+        if err != nil {
+		    t.Errorf("failed to read: %v", err)
+	    }
+
+        // ### Then ###
+        expected := "pong"
+        actual := string(body)
+        if actual != expected {
+            t.Errorf("result does not match. actual: %v, expected: %v", actual, expected)
+        }
+    }
+//}
 
 
-http通信を非同期で行うmockを自ら書いてテストする方法もあります。
-が、この場合はサーバーの立ち上げ時間などでテストが失敗してしまうケースがあるため、なるべく最初の方法を利用したほうがベターです。
+サードパーティライブラリを使うと、もう少し手軽にモックできます。
+//source[http_test].go]{
+    import (
+        "github.com/jarcoal/httpmock"
+        "io/ioutil"
+        "net/http"
+        "testing"
+    )
 
-//source[transform.go]{
-import (
-	"github.com/jarcoal/httpmock"
-	"io/ioutil"
-	"net/http"
-	"testing"
-)
+    func TestHttp(t *testing.T) {
+        httpmock.Activate()
+        defer httpmock.DeactivateAndReset()
+        baseURL := "http://www.example.com"
+        expected := "hello test"
 
-func TestHttpMockSample(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
+        httpmock.RegisterResponder(
+            "GET",
+            baseURL,
+            httpmock.NewStringResponder(200, expected))
 
-	httpmock.RegisterResponder(
-		"GET",
-		"http://www.google.co.jp",
-		httpmock.NewStringResponder(200, "this is a mock."))
+        res, _ := http.Get(baseURL)
+        body, _ := ioutil.ReadAll(res.Body)
+        defer res.Body.Close()
 
-	res, _ := http.Get("http://www.google.co.jp")
-	body, _ := ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
-
-	expected := "this is a mock."
-	ret := string(body)
-	if ret != expected {
-		t.Errorf("expected %s, but got %s\n", expected, ret)
-	}
-}
+        actual := string(body)
+        if actual != expected {
+            t.Errorf("result does not match. actual: %v, expected: %v", actual, expected)
+        }
+    }
 }
 
 === 標準出力に対するテスト
@@ -543,7 +596,7 @@ func captureStdout(f func()) string {
 //}
 
 上記のように、関数を呼び出す際に出力先をbytes.Bufferに切り替え、それをstringにして返しています。  
-実際にrun()関数の標準出力をテストする場合は下記の様に書くことができます。
+実際にrun()関数の標準出力をテストする場合は次のように書くことができます。
 
 //source[run_test.go]{
 func TestRun(t *testing.T) {
@@ -566,7 +619,8 @@ func TestRun(t *testing.T) {
 
 === CLIへのテスト
 
-CLIは一見テストが行いづらそうに思えますが、main関数をそのままrunで囲ってしまうことでテストを分離することが可能です。
+CLIは一見テストが行いづらそうに思えますが、main関数をそのままrunで囲ってしまうことでテストを分離できます。
+captureStdoutは前項のものを利用します。
 
 //source[main.go]{
 func main() {
@@ -581,23 +635,44 @@ const (
 
 func run(args []string) int {
     // オプション引数のパース
-    var version bool
+    var output string
     flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-    flags.BoolVar(&version, "version", false, "Print version information and quit")
+    flags.StringVar(&output, "hello world.", false, "output console from input")
 
     if err := flags.Parse(args[1:]); err != nil
         return ExitCodeError
     }
 
-    fmt.Println("Do awesome workn")
+    fmt.Println(output)
 
     return ExitCodeOK
 }
 //}
 
+//source[run_test.go]{
+func TestRun(t *testing.T) {
+	// ### Given ###
+	expected := "hello test"
+
+	// ### When ###
+	actual := captureStdout(func() {
+        code = run(expected)
+    })
+
+    // ### Then ### 
+    if code != ExitCodeOK {
+        t.Errorf("Unexpected exit code: %d", code)
+    }
+
+    if actual != expected {
+        t.Errorf("result does not match. actual: %v, expected: %v", actual, expected)
+    }
+}
+//}
+
 === ファイル入力のテスト
 
-ファイル入力を行う場合は、packageのtestdata配下に読み込みたいテストファイルを置き、それを読み込んでテストを行うと良いです。
+ファイル入力を行う場合は、packageのtestdata配下に読み込みたいテストファイルを置き、それを読み込んでテストを行うとよいです。
 
 //source[testdata/test.csv]{
 id,name
@@ -648,7 +723,7 @@ func TestRead(t *testing.T) {
 === ファイル出力のテスト
 
 ファイル出力を行う場合は、テストの中でtemporaryのディレクトリを作成します。
-次に出力先を書き換え、そこに出力し、中身を読み込むことで単体テストの範囲でファイルの出力内容について確認することが出来ます。
+次に出力先を書き換え、そこに出力し、中身を読み込むことでユニットテストの範囲でファイルの出力内容について確認できます。
 
 //source[run.go]{
 func run(p string, txt string) { 
@@ -689,7 +764,9 @@ func TestRun(t *testing.T) {
 //}
 
 == 参考
-http://yukihir0.hatenablog.jp/entry/2015/07/05/154626
-https://blog.y-yuki.net/entry/2017/05/08/000000
-https://swet.dena.com/entry/2018/01/29/141707
+@<href>{https://qiita.com/kami_zh/items/ff636f15da87dabebe6c, Goで標準出力をテストする方法}
+@<href>{http://yukihir0.hatenablog.jp/entry/2015/07/05/154626, GolangでHTTPサーバのモックを使ってテストを実行する}
+@<href>{https://kaneshin.hateblo.jp/entry/2016/12/02/200108, golangのhttptestパッケージを使う}
+@<href>{https://blog.y-yuki.net/entry/2017/05/08/000000, Go言語 - 空インターフェースと型アサーション}
+@<href>{https://swet.dena.com/entry/2018/01/29/141707, Golang testingことはじめ（3）〜アプリケーションのテスト〜}
 
