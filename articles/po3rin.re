@@ -36,7 +36,7 @@ func main() {
 }
 //}
 
-@<list>{gen}で@<code>{mat.NewDense}を使って@<code>{*mat.Dense}という行列のデータ構造をもつ構造体が返ってきます。@<code>{mat.Dense}のデータ構造をみてみましょう。
+@<code>{mat.NewDense}を使うと@<code>{*mat.Dense}という行列のデータ構造をもつ構造体が返ってきます。@<code>{mat.Dense}のデータ構造をみてみましょう。
 
 //list[inner][mat.Denseの定義][go]{
 // gonum/mat/dense.go
@@ -70,7 +70,7 @@ func NewDense(r, c int, data []float64) *Dense {
 }
 //}
 
-@<code>{mat.NewDense}を見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}に行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。mat.NewDense@<code>{Dense.mat}の型である@<code>{blas64.General}についてはのちほど解説します。そして@<code>{*mat.Dense}は@<code>{mat.Matrix}というインターフェースを実装しています。
+@<code>{mat.NewDense}のソースコードを見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}や行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。@<code>{Dense.mat}の型である@<code>{blas64.General}については後ほど解説します。そして@<code>{*mat.Dense}は@<code>{mat.Matrix}というインターフェースを実装しています。
 
 //list[matrix][mat.Matrixインターフェース][go]{
 // Matrix is the basic matrix interface type.
@@ -87,9 +87,7 @@ type Matrix interface {
 
 === 行列のPrint
 
-早速Gonumによる行列計算の例をみていきたいところですが。今後の行列のデバッグのために@<list>{print}のように@<code>{mat.Formatted}関数を使って行列の構造を確認できるようにしておくと便利です。@<code>{mat.Formatted}関数は@<em>{Functional Option Pattern}で実装されており、すでに用意されているオプション関数を使って出力する行列をフォーマットできます。Functional Option PatternとはGoでよく使われるデザインパターンの１つなので、気になる方はRob Pike氏の「Self-referential functions and the design of options」@<fn>{fop}という記事を読んでみましょう。
-
-//footnote[fop][@<href>{https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html}]
+早速Gonumによる行列計算の例をみていきたいところですが。今後の行列のデバッグのために@<list>{print}のように@<code>{mat.Formatted}関数を使って行列の構造を確認できるようにしておくと便利です。
 
 //list[print][mat.Formattedを使ったデバッグ用関数の実装][go]{
 func matPrint(X mat.Matrix) {
@@ -98,7 +96,9 @@ func matPrint(X mat.Matrix) {
 }
 //}
 
-@<list>{print}を使って@<list>{gen}を書き直して@<list>{printwith}のようにすると行列がprintできます。
+@<code>{mat.Formatted}関数は@<em>{Functional Option Pattern}で実装されており、すでに用意されているオプション関数を使って出力する行列をフォーマットできます。Functional Option PatternとはGoでよく使われるデザインパターンの１つなので、気になる方はRob Pike氏の「Self-referential functions and the design of options」@<fn>{fop}という記事を読んでみましょう。@<list>{print}を使って@<list>{gen}を書き直して@<list>{printwith}のようにすると行列がprintできます。
+
+//footnote[fop][@<href>{https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html}]
 
 //list[printwith][行列の生成][go]{
 package main
@@ -124,7 +124,7 @@ func main() {
 
 === 行列の基本演算
 
-@<code>{gonum/mat}を初めて使う人のために行列の計算の方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
+@<code>{gonum/mat}を初めて使う人のために行列演算の実装方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
 
 //list[add][行列の足し引き][go]{
 func main() {
@@ -152,7 +152,7 @@ func main() {
 }
 //}
 
-@<code>{mat.Dense}に生えているメソッドを使います。レシーバの値に計算の結果が格納されます。当然、他のデータ構造には別のメソッドが生えています。ベクトルを表す@<code>{mat.VecDense}には@<code>{AddVec}というメソッドが生えています。もちろん行列の定数倍、要素同士の積、内積も計算できます。
+演算は基本的には@<code>{mat.Dense}に生えているメソッドを使います。レシーバの値に計算の結果が格納されます。当然、他のデータ構造には別のメソッドが生えています。ベクトルの実装である@<code>{mat.VecDense}には@<code>{AddVec}というメソッドが生えています。もちろん行列の定数倍、要素同士の積、内積も計算できます。
 
 //list[scale][行列の定数倍][go]{
 func main() {
@@ -239,7 +239,7 @@ func main() {
 
 === 行列の結合
 
-行列の結合においては@<code>{Stack}メソッドや@<code>{Augment}が用意されています。
+行列の結合においては@<code>{Stack}メソッドや@<code>{Augment}メソッドが用意されています。
 
 //list[stack][Stackを使った行列の結合][go]{
 func main() {
@@ -279,7 +279,7 @@ func main() {
 
 === 各要素に任意の操作を行う
 
-@<code>{Apply}メソッドは要素に任意の操作を行いたい場合に便利です。
+@<code>{Apply}メソッドは各要素に任意の操作を行いたい場合に便利です。
 
 //list[apply][Applyのサンプル][go]{
 func main() {
@@ -303,15 +303,15 @@ func main() {
 }
 //}
 
-@<code>{Apply}は各要素に任意の操作を実行できます。第一引数には@<code>{func(i int, j int, v float64) float64}という型の関数を渡します。@<code>{i},@<code>{j}は行番号、列番号で、@<code>{v}はその要素の値です。この3つの値を使って任意の操作を行います。そして戻り値が行列に新しくセットされます。@<code>{gonum/mat}に用意されていない複雑な計算をする時に便利です。
+@<code>{Apply}の第一引数には@<code>{func(i int, j int, v float64) float64}という型の関数を渡します。@<code>{i},@<code>{j}は行番号、列番号で、@<code>{v}はその要素の値です。この3つの値を使って任意の操作を行います。そして戻り値が行列に新しくセットされます。@<code>{gonum/mat}に用意されていない複雑な計算をする時に便利です。
 
 == Go+Gonumによる行列計算の実装レシピ
 
-Gonumでは提供されていないけど、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして実装の方法を紹介します。
+Gonumでは提供されていないけど、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして紹介します。
 
 === 行列とベクトルの足し算
 
-Pythonでは演算子オーバーロードがあるので@<code>{+}でそのまま行列とベクトルの足し算ができますが、Gonumの@<code>{Add}メソッドでは同じサイズの行列しか計算できません。そこで行列とベクトルの足し算をする関数を別で用意する必要があります。
+Pythonでは演算子オーバーロードがあるので@<code>{+}でそのまま行列とベクトルの足し算ができますが、Gonumの@<code>{Add}メソッドでは同じサイズの行列しか計算できません。そこで行列とベクトルの足し算（すべての行にベクトルを足す）をする関数を別で用意する必要があります。
 
 //list[addmatvec][行列とベクトルの足し算][go]{
 func AddMatVec(x *mat.Dense, v *mat.VecDense) *mat.Dense {
@@ -366,7 +366,7 @@ type Vector struct {
 
 === 列ごとの合計値を計算してベクトルにする
 
-列ごとの合計値を計算してベクトルにする処理です。これはニューラルネットワークを実装する際に必要でした。
+列ごとの合計値を計算してベクトルにする処理です。
 
 //list[sumcol][列ごとの合計値を計算してベクトルにする][go]{
 func SumCol(x *mat.Dense) *mat.VecDense {
@@ -387,7 +387,7 @@ func SumCol(x *mat.Dense) *mat.VecDense {
 func Sum(a Matrix) float64
 //}
 
-@<code>{Matrix}インターフェースを受け取るので当然@<code>{mat.Dense}や@<code>{mat.VecDense}を受け取れます。合計値を@<code>{SetVec}を使ってベクトルに格納しています。
+@<code>{Matrix}インターフェースを受け取るので当然@<code>{mat.Dense}や@<code>{mat.VecDense}も受け取れます。そして@<code>{mat.Sum}で算出した合計値を@<code>{SetVec}を使ってベクトルに格納しています。
 
 === 行列から行を間引く
 
