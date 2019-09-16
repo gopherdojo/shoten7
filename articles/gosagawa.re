@@ -18,24 +18,24 @@ Goのエラーハンドリングのよいところでもありたいへんなと
 
 Webアプリケーションを例に取った時、よくある要件として以下があげられます。
 
-* エラーを階層構造でもち、オリジナルのエラーと最後にラップしたエラー含めていずれの階層のエラーも取得できる。
-* 問題の発生箇所のファイル、関数名、行数を確認できる。
-* エラーの種類やログレベル、エラーコード、レスポンスコードなどを保持できる。
-* アプリケーション固有の情報を保持できる。
+ * エラーを階層構造でもち、オリジナルのエラーと最後にラップしたエラー含めていずれの階層のエラーも取得できる。
+ * 問題の発生箇所のファイル、関数名、行数を確認できる。
+ * エラーの種類やログレベル、エラーコード、レスポンスコードなどを保持できる。
+ * アプリケーション固有の情報を保持できる。
 
 それぞれみていきましょう。
 
-* エラーを階層構造でもち、オリジナルのエラーと最後にラップしたエラー含めていずれの階層のエラーも取得できる。
+ * エラーを階層構造でもち、オリジナルのエラーと最後にラップしたエラー含めていずれの階層のエラーも取得できる。
 
 簡単なプログラムでない限り、エラーは階層化されていくでしょう。たとえば、ログイン処理でユーザー取得の際DB接続に失敗したとすると、
 DB接続エラー、ユーザー取得エラー、ログインエラーと階層化されます。こうなった時にログインエラーだけわかっても何が原因かわかりませんし、
 DB接続エラーだけみてもそれがどのような影響をるのかわからないため必要になるかと思い明日。
 
-* 問題の発生箇所のファイル、行数を確認できる。
+ * 問題の発生箇所のファイル、行数を確認できる。
 
 エラーが発生したら、発生箇所のコードを追うことになるのでほしい情報です。なお、階層化された場合は階層化されたエラーそれぞれの発生箇所を追えるのが望ましいです。
 
-* エラーの種類やログレベル、エラーコード、レスポンスコードなどを保持できる。
+ * エラーの種類やログレベル、エラーコード、レスポンスコードなどを保持できる。
 
 #@# textlint-disable
 
@@ -44,7 +44,7 @@ DB接続エラーだけみてもそれがどのような影響をるのかわか
 
 #@# textlint-enable
 
-* アプリケーション固有の情報を保持できる。
+ * アプリケーション固有の情報を保持できる。
 
 時として、エラーは特定のシチュエーションのみでしか発生しないことがあります。たとえ、特定のユーザーのみ発生するエラーがあった場合、ユーザー情報をエラーと一緒に保持しておくとデバッグが容易になります。
 エラーメッセージ内に持たせることもできるのですが、エラーの可読性を落としたりシステムで何か処理をしたい場合は別に持っていることが望ましいです。
@@ -54,7 +54,7 @@ DB接続エラーだけみてもそれがどのような影響をるのかわか
 
 業務で最初に作成したエラーハンドリングのロジックは次のようなものでした。
 
-//emlist[][]{
+//list[firstcode][業務で最初に作成したエラーコード][go]{
 import (
 	"github.com/pkg/errors"
 )
@@ -75,7 +75,11 @@ func (e *applicationError) Error() string {
 }
 
 // NewApplicationError ApplicationErrorを作成する
-func NewApplicationError(errorCode string, msg string, parameters ...interface{}) error {
+func NewApplicationError(
+    errorCode string,
+    msg string,
+    parameters ...interface{},
+) error {
 
 	err := &applicationError{
 		msg:        msg,
@@ -87,7 +91,12 @@ func NewApplicationError(errorCode string, msg string, parameters ...interface{}
 }
 
 // WrapApplicationError 元のエラーをラップしたApplicationErrorを作成する
-func WrapApplicationError(cause error, errorCode string, msg string, parameters ...interface{}) error {
+func WrapApplicationError(
+    cause error,
+    errorCode string, 
+    msg string,
+    parameters ...interface{},
+) error {
 
 	err := &applicationError{
 		msg:        concatErrorMessage(cause, msg),
@@ -119,11 +128,13 @@ Wrapをした際にメッセージ以外のオリジナル情報は失われて�
 
 pkg/errorsは非常にシンプルなライブラリで、ファイルも数ファイルのみでコードも読みやすいです。実際に読んでみると次の機能に集約されることがわかります。
 
-* エラー内容を階層化して保存する。
-* スタックトレースを取得する。
+ * エラー内容を階層化して保存する。
+ * スタックトレースを取得する。
 
 それぞれの機能は次のように実現されています
-* エラー内容を階層化して保存する。
+
+ * エラー内容を階層化して保存する。
+
 エラーは図に示すような構造体となって階層状に保存されていきます。
 
 WithMessageはCause（)というcauseを返す関数を持ちます。Cause（）関数をもつcauserインタフェースを定義し、errがcauserに変換できるかを再帰処理で調べていきます。
@@ -150,11 +161,13 @@ func Cause (err error) error {
 
 #@# textlint-enable
 
-* スタックトレースを取得する
+ * スタックトレースを取得する
+
 スタックトレースは、ファイル名と関数名、行数で構成されていますが
 それぞれruntimeパッケージを利用することで取得できます。
 シンプルにruntimeパッケージを使って情報を取得するには次のような関数になります。
 
+@<href>{https://play.golang.org/p/CN09KGDu6UC,https://play.golang.org/p/CN09KGDu6UC}
 
 //list[runtime][ランタイムパッケージを使用した情報取得][go]{
 package main
@@ -179,9 +192,9 @@ func main() {
 }
 //}
 
-これをGo Playground上で動かすと（https://play.golang.org/p/CN09KGDu6UC）
+これを動かすと
 
-//emlist[][]{
+//list[runtimeresult][実行結果]{
 runtime.Callers /usr/local/go/src/runtime/extern.go 211
 main.main /tmp/sandbox099384991/prog.go 12
 runtime.main /usr/local/go/src/runtime/proc.go 212
@@ -193,8 +206,8 @@ pkg/errorsでも同様にruntimeパッケージを利用して、情報を取得
 以上がpkg/errorsの挙動となりますが、これを踏まえると階層化しているデータはメッセージのみなのでそれ以外の情報を持たせるようにし、
 スタックトレースを取る機能はpkg/errorを使わずにruntimeパッケージをそのまま使うことにより実現ができそうです。
 
-== xrrors、Go 1.13以降のerrorsについて
-xrrorsについてはpkg/errorsを使ったやり方から公式でも検討された経緯もあり、スタックトレースを取得したりエラーをラップしたりできます。
+== xerrors、Go 1.13以降のerrorsについて
+xerrorsについてはpkg/errorsを使ったやり方から公式でも検討された経緯もあり、スタックトレースを取得したりエラーをラップしたりできます。
 AsやIs、UnWrapなどの便利な関数も利用できるようになり公式なpkg/errorsの上記互換となります。
 実際にGo1.13ではxerrorsがerrorsとして採用され、スタックトレース表示の機能を除きエラーのラップやIsメソッド、Asメソッドが利用できるようになっています。
 
@@ -295,13 +308,13 @@ Err構造体には項目を増やすことができ、また内部にerrorイン
 ただ、個人的な感想としてはopを毎回指定しなければ行けないのが冗長ではと思っています。
 runtimeで呼び出し元の関数名や行数は取得できるのでopを毎回定義するのではなく、runtimeを利用するという方法でもよいのではないでしょうか。
 
-==[column]  athensのエラーハンドリング
+===[column] athensのエラーハンドリング
 
 GopherCon2019で発表されたathensというプロジェクトでもerror handling in goで述べられてい方法と同様のやり方が取られています。
-なおathensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
+それもそのはずで、athensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
 error handling in goで発表された内容の詳細な実例として見ることができるでしょう。
 
-//emlist[https://github.com/gomods/athens/blob/マスタ/pkg/errors/errors.go][go]{
+//emlist[エラー構造体(/pkg/errors/errors.go)][go]{
 // Error is an Athens system error.
 // It carries information and behavior
 // as to what caused this error so that
