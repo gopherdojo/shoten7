@@ -643,3 +643,7 @@ PASS
 
 == まとめ
 
+今回はGonumを使った行列の操作を紹介しました。他にもさまざまな機能があるので是非ドキュメント@<fn>{godoc2}を見ながら触ってみてください。僕自身もGonumを使ってWord2Vecを組んでみたのでこちらのリポジトリ@<fn>{gonnp}も是非参考にしてみてください。
+
+//footnote[godoc2][@<href>{https://godoc.org/gonum.org/v1/gonum/mat}]
+//footnote[gonnp][@<href>{https://github.com/po3rin/gonnp}]
