@@ -3,12 +3,13 @@
 == はじめに
 
 白ヤギコーポレーションでバックエンドエンジニアをしている@po3rin@<fn>{po3rin}です。仕事ではGoをメインにサーバーサイドの開発をしています。Goで行列なんて扱えるのかと思うかもしれませんが、Go製の数値計算パッケージである@<em>{Gonum}の中に@<em>{mat}パッケージという行列計算を行うための機能が提供されています。今回はGo+Gonumによる行列計算のエッセンスを紹介します。
-
 //footnote[po3rin][@<href>{https://twitter.com/po3rin}]
 
 == Gonumによる行列の生成と内部実装
 
-まずは行列の作り方を見てみましょう。
+ここからはGonumのドキュメント@<fn>{godoc}を見ながらだと理解が進みやすいと思います。まずは行列の作り方を見てみましょう。
+
+//footnote[godoc][@<href>{https://godoc.org/gonum.org/v1/gonum/mat}]
 
 //list[gen][行列の生成][go]{
 package main
@@ -67,8 +68,7 @@ func NewDense(r, c int, data []float64) *Dense {
 }
 //}
 
-@<code>{mat.NewDense}を見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}に行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。mat.NewDense@<code>{Dense.mat}の型である@<code>{blas64.General}については@<em>{TODO}章で解説します。そして@<code>{*mat.Dense}はとあるインターフェースを実装しています。それが@<code>{mat.Matrix}インターフェースです。
-
+@<code>{mat.NewDense}を見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}に行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。mat.NewDense@<code>{Dense.mat}の型である@<code>{blas64.General}については後ほど解説します。そして@<code>{*mat.Dense}は@<code>{mat.Matrix}というインターフェースを実装しています。
 
 //list[matrix][mat.Matrixインターフェース][go]{
 // Matrix is the basic matrix interface type.
@@ -83,7 +83,7 @@ type Matrix interface {
 
 == Gonumで簡単な行列計算をやってみよう
 
-=== 行列のPrint方法
+=== 行列のPrint
 
 早速Gonumによる行列計算の例をみていきたいところですが。今後の行列のデバッグのために@<list>{print}のように@<code>{mat.Formatted}関数を使って行列の構造を確認できるようにしておくと便利です。@<code>{mat.Formatted}関数は@<em>{Functional Option Pattern}で実装されており、すでに用意されているオプション関数を使って出力する行列をフォーマットできます。Functional Option PatternとはGoでよく使われるデザインパターンの１つなので、気になる方はRob Pike氏の「Self-referential functions and the design of options」@<fn>{fop}という記事を読んでみましょう。
 
@@ -120,7 +120,7 @@ func main() {
 }
 //}
 
-=== 行列の基本操作
+=== 行列の基本演算
 
 @<code>{gonum/mat}をはじめて使う人のために行列の計算の方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
 
@@ -389,7 +389,7 @@ func Sum(a Matrix) float64
 
 === 行列から行を間引く
 
-@<code>{Slice}は範囲指定で行列を生成しますが、とびとびで行を指定してそれを抽出したい場合は自分で実装する必要があります。
+@<code>{Slice}は範囲指定で行列を生成しますが、とびとびで行を指定してそれを抽出して行列を作りたい場合は自分で実装する必要があります。
 
 //list[thin][行列から行を間引く][go]{
 func ThinRow(x mat.Dense, targets []int) *mat.Dense {
@@ -443,7 +443,10 @@ func TestSigmoid(t *testing.T) {
         {
             name:  "2*2",
             input: mat.NewDense(2, 2, []float64{2, 2, 2, 2}),
-            want:  mat.NewDense(2, 2, []float64{0.88079707797788, 0.88079707797788, 0.88079707797788, 0.88079707797788}),
+            want:  mat.NewDense(2, 2, []float64{
+                0.88079707797788, 0.88079707797788,
+                0.88079707797788, 0.88079707797788,
+            }),
         },
     }
 
@@ -600,7 +603,7 @@ func makeRandVec(num int) *mat.VecDense {
 	return mat.NewVecDense(num, data)
 }
 
-func BenchmarkOpenBlas(b *testing.B) {
+func BenchmarkOpenBLAS(b *testing.B) {
 	blas64.Use(netlib.Implementation{})
 	v := makeRandVec(10000)
 	b.ResetTimer()
@@ -609,7 +612,7 @@ func BenchmarkOpenBlas(b *testing.B) {
 	}
 }
 
-func BenchmarkGonumBlas(b *testing.B) {
+func BenchmarkGonumBLAS(b *testing.B) {
 	blas64.Use(gonum.Implementation{})
 	v := makeRandVec(10000)
 	b.ResetTimer()
@@ -622,12 +625,15 @@ func BenchmarkGonumBlas(b *testing.B) {
 @<code>{blas64.Use}で使うBLASをベンチマークごとに切り替えれいます。@<list>{bench}の@<code>{makeRandVec}ではテスト用にランダムな要素をもつ行列を生成します。ベンチマークを実行するときは@<code>{CGO_LDFLAGS}フラッグでOpenBLASのインストール先のパスを指定する必要があります。
 
 //list[run][ベンチマークの実行][go]{
+$ go version
+go version go1.13 darwin/amd64
+
 $ CGO_LDFLAGS="-L/usr/local/opt/openblas/lib -lopenblas" go test -bench=.
 goos: darwin
 goarch: amd64
 pkg: github.com/po3rin/trygonum
-BenchmarkOpenBlas-12     	  726909	      1481 ns/op
-BenchmarkGonumBlas-12    	  448212	      2575 ns/op
+BenchmarkOpenBLAS-12     	  726909	      1481 ns/op
+BenchmarkGonumBLAS-12    	  448212	      2575 ns/op
 PASS
 //}
 
