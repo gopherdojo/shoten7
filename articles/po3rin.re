@@ -1,5 +1,7 @@
 = Go + Gonum による行列計算のエッセンス
 
+#@# textlint-disable
+
 == はじめに
 
 白ヤギコーポレーションでバックエンドエンジニアをしている@po3rin@<fn>{po3rin}です。仕事ではGoをメインにサーバーサイドの開発をしています。Goで行列なんて扱えるのかと思うかもしれませんが、Go製の数値計算パッケージである@<em>{Gonum}の中に@<em>{mat}パッケージという行列計算を行うための機能が提供されています。今回はGo+Gonumによる行列計算のエッセンスを紹介します。
@@ -7,7 +9,7 @@
 
 == Gonumによる行列の生成と内部実装
 
-ここからはGonumのドキュメント@<fn>{godoc}を見ながらだと理解が進みやすいと思います。まずは行列の作り方を見てみましょう。
+ここからはGonumのドキュメント@<fn>{godoc}を見ながらだと理解が進みやすいです。まずは行列の作り方を見てみましょう。
 
 //footnote[godoc][@<href>{https://godoc.org/gonum.org/v1/gonum/mat}]
 
@@ -68,7 +70,7 @@ func NewDense(r, c int, data []float64) *Dense {
 }
 //}
 
-@<code>{mat.NewDense}を見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}に行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。mat.NewDense@<code>{Dense.mat}の型である@<code>{blas64.General}については後ほど解説します。そして@<code>{*mat.Dense}は@<code>{mat.Matrix}というインターフェースを実装しています。
+@<code>{mat.NewDense}を見れば分かりやすいですが、Denseの正体は要素の値の一覧である@<code>{[]float64}に行数、列数、ストライドなどの情報を保持しているだけです。また、要素を全部0で初期化したい場合は@<code>{mat.NewDense}コードから@<code>{mat.NewDense}の第三引数に@<code>{nil}を渡せばよいことが分かります。mat.NewDense@<code>{Dense.mat}の型である@<code>{blas64.General}についてはのちほど解説します。そして@<code>{*mat.Dense}は@<code>{mat.Matrix}というインターフェースを実装しています。
 
 //list[matrix][mat.Matrixインターフェース][go]{
 // Matrix is the basic matrix interface type.
@@ -122,7 +124,7 @@ func main() {
 
 === 行列の基本演算
 
-@<code>{gonum/mat}をはじめて使う人のために行列の計算の方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
+@<code>{gonum/mat}を初めて使う人のために行列の計算の方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
 
 //list[add][行列の足し引き][go]{
 func main() {
@@ -150,7 +152,7 @@ func main() {
 }
 //}
 
-@<code>{mat.Dense}に生えているメソッドを使います。レシーバの値に計算の結果が格納されます。当然他のデータ構造には別のメソッドが生えています。ベクトルを表す@<code>{mat.VecDense}には@<code>{AddVec}というメソッドが生えています。もちろん行列の定数倍、要素同士の積、内積も計算できます。
+@<code>{mat.Dense}に生えているメソッドを使います。レシーバの値に計算の結果が格納されます。当然、他のデータ構造には別のメソッドが生えています。ベクトルを表す@<code>{mat.VecDense}には@<code>{AddVec}というメソッドが生えています。もちろん行列の定数倍、要素同士の積、内積も計算できます。
 
 //list[scale][行列の定数倍][go]{
 func main() {
@@ -301,11 +303,11 @@ func main() {
 }
 //}
 
-@<code>{Apply}は各要素に任意の操作を実行できます。第一引数には@<code>{func(i int, j int, v float64) float64}という型の関数を渡します。@<code>{i},@<code>{j}は行番号、列番号で、@<code>{v}はその要素の値です。この3つの値を使って任意の操作を行います。そして返り値が行列に新しくセットされます。@<code>{gonum/mat}に用意されていない複雑な計算をする時に便利です。
+@<code>{Apply}は各要素に任意の操作を実行できます。第一引数には@<code>{func(i int, j int, v float64) float64}という型の関数を渡します。@<code>{i},@<code>{j}は行番号、列番号で、@<code>{v}はその要素の値です。この3つの値を使って任意の操作を行います。そして戻り値が行列に新しくセットされます。@<code>{gonum/mat}に用意されていない複雑な計算をする時に便利です。
 
 == Go+Gonumによる行列計算の実装レシピ
 
-ここではGonumでは提供されていないけど、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして実装の方法をご紹介します。
+Gonumでは提供されていないけど、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして実装の方法を紹介します。
 
 === 行列とベクトルの足し算
 
@@ -461,7 +463,7 @@ func TestSigmoid(t *testing.T) {
 }
 //}
 
-こレデ行列のサイズと値が等しいかをチェックできます。@<code>{mat.EqualApprox}は第３引数は任意の許容誤差を指定できます。実際にテストケースの@<code>{want}は@<code>{0.88079707797788}と設定していますが、実際の計算結果の値は@<code>{0.8807970779778823}です。しかし、mat.EqualApproxに許容誤差を指定しているのでこのテストはPASSします。もちろん完全な一致を確認したい場合は@<code>{mat.Equal}関数が使えます。
+@<code>{mat.EqualApprox}で行列のサイズと値が等しいかをチェックできます。@<code>{mat.EqualApprox}は第３引数は任意の許容誤差を指定できます。実際にテストケースの@<code>{want}は@<code>{0.88079707797788}と設定していますが、実際の計算結果の値は@<code>{0.8807970779778823}です。しかし、mat.EqualApproxに許容誤差を指定しているのでこのテストはPASSします。もちろん完全な一致を確認したい場合は@<code>{mat.Equal}関数が使えます。
 
 
 == Gonumで行列を扱う際のエラーハンドリング
@@ -622,7 +624,7 @@ func BenchmarkGonumBLAS(b *testing.B) {
 }
 //}
 
-@<code>{blas64.Use}で使うBLASをベンチマークごとに切り替えれいます。@<list>{bench}の@<code>{makeRandVec}ではテスト用にランダムな要素をもつ行列を生成します。ベンチマークを実行するときは@<code>{CGO_LDFLAGS}フラッグでOpenBLASのインストール先のパスを指定する必要があります。
+@<code>{blas64.Use}で使うBLASをベンチマークごとに切り替えています。@<list>{bench}の@<code>{makeRandVec}ではテスト用にランダムな要素をもつ行列を生成します。ベンチマークを実行するときは@<code>{CGO_LDFLAGS}フラッグでOpenBLASのインストール先のパスを指定する必要があります。
 
 //list[run][ベンチマークの実行][go]{
 $ go version
