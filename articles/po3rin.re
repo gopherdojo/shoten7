@@ -163,9 +163,9 @@ func main() {
     })
 
     // 要素の定数倍
-    C = mat.NewDense(3, 4, nil)
+    C := mat.NewDense(3, 4, nil)
     C.Scale(2, A)
-    matPrint(&C)
+    matPrint(C)
     // | 2   4   6   8|
     // |10  12  14  16|
     // |18  20  22  24|
@@ -284,22 +284,22 @@ func main() {
 //list[apply][Applyのサンプル][go]{
 func main() {
     A := mat.NewDense(3, 4, []float64{
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-    })
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9, 10, 11, 12,
+	})
 
-    // 各要素の値に行番号、列番号を足す
-    sumOfIndices := func(i, j int, v float64) float64 {
-        return float64(i+j) + v
-    }
+	// 各要素の値に行番号、列番号を足す
+	sumOfIndices := func(i, j int, v float64) float64 {
+		return float64(i+j) + v
+	}
 
-    var B mat.Dense
-    B.Apply(sumOfIndices, A)
-    matPrint(B)
-    // | 1   3   5   7|
-    // | 6   8  10  12|
-    // |11  13  15  17|
+	B := mat.NewDense(3, 4, nil)
+	B.Apply(sumOfIndices, A)
+	matPrint(B)
+	// | 1   3   5   7|
+	// | 6   8  10  12|
+	// |11  13  15  17|
 }
 //}
 
