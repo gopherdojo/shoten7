@@ -307,7 +307,7 @@ func main() {
 
 == Go+Gonumによる行列計算の実装レシピ
 
-Gonumでは提供されていないけど、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして紹介します。
+Gonumでは提供されていないものの、Gonumで行列を本格的に扱おうとすると必要になってくる処理をピックアップして紹介します。
 
 === 行列とベクトルの足し算
 
@@ -409,7 +409,7 @@ func ThinRow(x mat.Dense, targets []int) *mat.Dense {
 
 === シグモイド関数
 
-シグモイド関数はデープラーニングで活性化関数として使われたりします。
+シグモイド関数はディープラーニングで活性化関数として使われたりします。
 
 //image[Sigmoid][シグモイド関数の式][scale=0.5]{
 //}
@@ -540,6 +540,7 @@ type Dense struct {
 
     capRows, capCols int
 }
+//}
 
 @<list>{dense}のフィールドを見ると@<code>{blas.General}とあります。このblasとは何でしょうか。@<em>{BLAS}とは、Basic Linear Algebra Subprogramsの略です。つまり基本的な線形演算のライブラリを意味しています。BLASにはさまざまな種類があり OpenBLAS や ATLAS などが存在します。各BLASの説明は記事「Numpyに使われるBLASによって計算速度が変わるらしい」@<fn>{blas}がまとまっています。
 
@@ -639,7 +640,7 @@ BenchmarkGonumBLAS-12    	  448212	      2575 ns/op
 PASS
 //}
 
-今回のケースでは1.7倍ほどOpenBLASの方が早くなっています。もちろん全パターンでOpenBLASが早い訳ではないので、適宜ベンチマークをとっていきましょう。
+今回のケースでは1.7倍ほどOpenBLASの方が早くなっています。もちろん全パターンでOpenBLASが早いわけではないので、適宜ベンチマークをとっていきましょう。
 
 == まとめ
 
