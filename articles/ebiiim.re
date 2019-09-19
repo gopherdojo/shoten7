@@ -29,7 +29,7 @@ GATTでは、通信を開始する側をクライアントと、クライアン�
 
 === GATT（Generic Attribute Profile）
 
-GATTは、次に示す概念により、クライアントによるデータの読み書きとサーバによるプッシュ通知のためのデータモデルを定義します。
+GATTは、次に示す概念により、クライアントによるデータの読み書きとサーバによる通知のためのデータモデルを定義します。
 
 ==== キャラクタリスティック（Characteristic）
 
@@ -191,4 +191,66 @@ Manufacturer name: Echowell
 //}
 
 同様に、@<code>{examples/ble_battery.go}を実行することでBASからバッテリー残量を取得できます。
+
+== 心拍数モニタを作る
+
+サンプルコードの動作を確認したので、次は実際のコードを書きます。
+心拍数センサから心拍数を取得するために、HRSを一部実装します。
+
+=== クライアント
+
+@<code>{examples/ble_device_info.go}と@<code>{examples/ble_battery.go}を参考にクライアントのコードを用意します（@<list>{client}）。
+これは、バッテリー残量の取得（l.26）を実施した後、センサ位置の取得（l.29）と心拍数通知の受け付け開始（l.32）を行うコードです。
+
+//listnum[client][examples/hrp_example.go][go]{
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"gobot.io/x/gobot"
+	"gobot.io/x/gobot/platforms/ble"
+)
+
+func main() {
+	bleAdaptor := ble.NewClientAdaptor(os.Args[1])
+	info := ble.NewDeviceInformationDriver(bleAdaptor)
+	battery := ble.NewBatteryDriver(bleAdaptor)
+	heartRate := ble.NewHeartRateDriver(bleAdaptor)
+
+	work := func() {
+		// info
+		fmt.Println("=== Device Information ===")
+		fmt.Println("Model number:", info.GetModelNumber())
+		fmt.Println("Firmware rev:", info.GetFirmwareRevision())
+		fmt.Println("Hardware rev:", info.GetHardwareRevision())
+		fmt.Println("Manufacturer name:", info.GetManufacturerName())
+		// battery
+		fmt.Println("=== Battery Level ===")
+		fmt.Println("Battery level:", battery.GetBatteryLevel())
+		// heartRate
+		fmt.Println("=== Body Sensor Location ===")
+		loc, _ := heartRate.GetBodySensorLocation()
+		fmt.Println("Body sensor location:", loc)
+		fmt.Println("=== Heart Rate ===")
+		heartRate.SubscribeHeartRateMeasurement()
+	}
+
+	robot := gobot.NewRobot("bleBot",
+		[]gobot.Connection{bleAdaptor},
+		[]gobot.Device{battery, heartRate},
+		work,
+	)
+
+	robot.Start()
+}
+//}
+
+このコードを実行するためには、次の項目を実装したドライバを用意する必要があります。
+
+- @<code>{HeartRateDriver}型
+- @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
+- @<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッド
+- @<code>{NewHeartRateDriver()}関数
 
