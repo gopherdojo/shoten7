@@ -148,7 +148,7 @@ $ go get -d -u gobot.io/x/gobot/...
  * @<code>{gobot.io/x/gobot/platforms/ble/}にBLE関連のコードがある
 
 では、サンプルコードで動作を確認しましょう。
-DISのキャラクタリスティックにアクセスしてデバイス情報を取得する
+DISのキャラクタリスティックからデバイス情報を取得する
 @<code>{examples/ble_device_info.go}を実行します（@<list>{gobot2}）。
 
 サンプルコードでは、引数にフレンドリ名@<fn>{fname}またはBDアドレス@<fn>{bda}を与えることでデバイスの特定を行います。
@@ -200,9 +200,10 @@ Manufacturer name: Echowell
 === クライアント
 
 @<code>{examples/ble_device_info.go}と@<code>{examples/ble_battery.go}を参考にクライアントのコードを用意します（@<list>{client}）。
-これは、バッテリー残量の取得（l.26）を実施した後、センサ位置の取得（l.29）と心拍数通知の受け付け開始（l.32）を行うコードです。
+これは、BASとHRSが使用できることを想定したプログラムです。
+バッテリー残量の取得（l.26）を実施した後、センサ位置の取得（l.29）と心拍数通知の受け付け開始（l.32）を行います。
 
-//listnum[client][examples/hrp_example.go][go]{
+//listnum[client][examples/hrs_example.go][go]{
 package main
 
 import (
@@ -247,10 +248,23 @@ func main() {
 }
 //}
 
-このコードを実行するためには、次の項目を実装したドライバを用意する必要があります。
+@<code>{examples/ble_battery.go}で確認したように、BASドライバはすでに用意されています。
+そのため、このコードを実行するためには、次の項目を実装したHRSドライバを用意する必要があります。
 
+ 1. @<code>{HeartRateDriver}型
+ 2. @<code>{NewHeartRateDriver()}関数
+ 3. @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
+ 4. @<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッド
+
+1と2は既存のコードと同じように実装するだけですが、
+3と4はGATTの仕様を読みながら実装していく必要がありそうです。
+
+
+#@# textlint-disable
 - @<code>{HeartRateDriver}型
 - @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
 - @<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッド
 - @<code>{NewHeartRateDriver()}関数
+#@# textlint-enable
+
 
