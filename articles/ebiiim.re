@@ -322,7 +322,7 @@ Body Sensor Location（0x2A38）とHeart Rate Measurement（0x2A37）を使用�
 HRSは、消費カロリーの値をリセットするためのHeart Rate Control Point（0x2A39）の実装も必要としますが、
 本稿では省略します（とても簡単です）。
 
-=== GATT Characteristics
+=== GATTキャラクタリスティック
 
 HRPの各キャラクタリスティックのための定数を定義します（@<list>{hrs}）。
 
@@ -377,6 +377,7 @@ var mBodySensorLocation = map[uint8]string{
 
 キャラクタリスティックの値を読み、Body Sensor Locationの値をstringで返す
 @<code>{HeartRateDriver.GetBodySensorLocation()}メソッドを実装します（@<list>{getbsl}）。
+値の読み出しには@<code>{BLEConnecter.ReadCharacteristic()}メソッドを使用します。
 
 //listnum[getbsl][heart_rate_driver.go（Body Sensor Locationの取得）][go]{
 func (b *HeartRateDriver) GetBodySensorLocation() (string, error) {
@@ -422,4 +423,37 @@ Body sensor location: Chest
 今回用意したセンサは胸につけることを想定しているため、
 Body Sensor Locationの値は常に1（Chest）が得られます。
 これで、Body Sensor Location（0x2A38）キャラクタリスティックの実装が完了しました。
+
+=== HeartRateMeasurement（0x2A37）
+
+同様に、キャラクタリスティックの通知の受け付けを開始し、通知を受けたらデータを標準出力に書き出す
+@<code>{HeartRateDriver.SubscribeHeartRate()}メソッドを実装します（@<list>{gethr_proto}）。
+通知の受け付けには@<code>{BLEConnecter.Subscribe()}メソッドを使用します。
+
+//listnum[gethr_proto][heart_rate_driver.go（心拍数計測データの取得）][go]{
+func (b *HeartRateDriver) SubscribeHeartRate() error {
+	err := b.adaptor().Subscribe(cUUIDHeartRateMeasurement,
+		func(data []byte, _ error) {
+            fmt.Println(time.Now().Format("15:04:05"), c)
+		})
+	return err
+}
+//}
+
+クライアントのコード（@<code>{examples/ble_heart_rate.go}）を実行すると、
+@<list>{out2}のような出力が得られるでしょう。
+
+//list[out2][examples/ble_heart_rate.goの実行結果（2）（抜粋）][go]{
+=== Heart Rate ===
+18:25:39 [22 74 134 127 131 108]
+18:25:40 [22 71 56 131 124 111]
+18:25:41 [22 69 221 134 117 114]
+//}
+
+データを解析していないのでただのバイト列ですが、
+#@# textlint-disable
+心拍にあわせて出力されているので、あと一歩ですね。
+#@# textlint-enable
+
+それでは、先ほどと同様にBluetooth SIGの公式サイトからHeart Rate Measurement（0x2A37）の仕様を確認します。
 
