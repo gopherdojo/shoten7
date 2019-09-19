@@ -67,7 +67,7 @@ UUIDで区別される@<fn>{uuid}、データをやりとりするための仕�
 
 == GoでBLE
 
-さて、それではGoでBLEに触れてみましょう。
+それではGoでBLEに触れてみましょう。
 
 === GoのBLEライブラリ
 
@@ -121,3 +121,74 @@ IoTやロボティクスのためのフレームワークです。
  * Last commit: May 2019
  * License: Apache-2.0
  * Repository: @<href>{https://github.com/hybridgroup/gobot}
+
+=== Gobotを使う
+
+====[column] 動作確認に用いた環境
+
+本稿の動作確認はすべてRaspberri PiとBLE対応の心拍数センサで行いました。
+詳細を示します。
+
+ * コンピュータ: Raspberry Pi 3 Model B+
+ * OS: Ubuntu 18.04.2 LTS
+ * Go: Go 1.13
+ * BLEデバイス: Echowell BH20（HRPとBASに対応した心拍数センサ）
+
+====[/column]
+
+まずはGobotをインストールしましょう（@<list>{gobot1}）。
+
+//list[gobot1][Gobotのインストール][bash]{
+$ go get -d -u gobot.io/x/gobot/...
+//}
+
+ディレクトリを眺めてみると、次のことがわかります。
+
+ * @<code>{gobot.io/x/gobot/examples/}にサンプルコードがある
+ * @<code>{gobot.io/x/gobot/platforms/ble/}にBLE関連のコードがある
+
+では、サンプルコードで動作を確認しましょう。
+DISのキャラクタリスティックにアクセスしてデバイス情報を取得する
+@<code>{examples/ble_device_info.go}を実行します（@<list>{gobot2}）。
+
+サンプルコードでは、引数にフレンドリ名@<fn>{fname}またはBDアドレス@<fn>{bda}を与えることでデバイスの特定を行います。
+
+//footnote[fname][スマートフォンやPCのBluetooth接続画面に表示される名前]
+//footnote[bda][Bluetoothデバイスを識別するためのIEEE 802に準拠したアドレス（MACアドレスと同じ構造）]
+
+//list[gobot2][サンプルコードの実行][bash]{
+$ cd ${GOPATH}/src/gobot.io/x/gobot
+$ go build examples/ble_device_info.go
+$ sudo ./ble_device_info フレンドリ名またはBDアドレス
+//}
+
+@<list>{gobot3}のようなログが現れるでしょう。
+なお、私の環境では@<code>{examples/ble_device_info.go}の33行目にある
+@<code>{info.GetPnPId()}でパニックが発生した@<fn>{pnpid}ので、33行目をコメントアウトした状態で実行しています。
+
+//footnote[pnpid][使用したBLEデバイスがPnP ID（0x2A50）キャラクタリスティックに対応していないため]
+
+ログの@<code>{Model number}や@<code>{Firmware rev}は、
+それぞれModel Number String（0x2A24）キャラクタリスティックとFirmware Revision String（0x2A26）キャラクタリスティックから取得したデータです。
+GATTのキャラクタリスティックはこのようにデータの仕様を細かく定義しています。
+
+//list[gobot3][サンプルコードの実行結果][plain]{
+2019/09/18 23:32:58 Initializing connections...
+2019/09/18 23:32:58 Initializing connection BLEClient-72B41CA7 ...
+2019/09/18 23:32:58 Initializing devices...
+2019/09/18 23:32:58 Initializing device DeviceInformation-3E0CE82B ...
+2019/09/18 23:32:58 Robot bleBot initialized.
+2019/09/18 23:32:58 Starting Robot bleBot ...
+2019/09/18 23:32:58 Starting connections...
+2019/09/18 23:32:58 Starting connection BLEClient-72B41CA7...
+2019/09/18 23:33:53 Starting devices...
+2019/09/18 23:33:53 Starting device DeviceInformation-3E0CE82B...
+2019/09/18 23:33:53 Starting work...
+Model number: BH20
+Firmware rev: QLN10
+Hardware rev: 01_00_0000
+Manufacturer name: Echowell
+//}
+
+同様に、@<code>{examples/ble_battery.go}を実行することでBASからバッテリー残量を取得できます。
+
