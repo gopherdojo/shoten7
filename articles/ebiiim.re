@@ -161,10 +161,10 @@ DISのキャラクタリスティックからデバイス情報を取得する
 //list[gobot2][サンプルコードの実行][bash]{
 $ cd ${GOPATH}/src/gobot.io/x/gobot
 $ go build examples/ble_device_info.go
-$ sudo ./ble_device_info フレンドリ名またはBDアドレス
+$ sudo ./ble_device_info "フレンドリ名またはBDアドレス"
 //}
 
-@<list>{gobot3}のようなログが現れるでしょう。
+@<list>{gobot3}のような出力が得られるでしょう。
 なお、私の環境では@<code>{examples/ble_device_info.go}の33行目にある
 @<code>{info.GetPnPId()}でパニックが発生した@<fn>{pnpid}ので、33行目をコメントアウトした状態で実行しています。
 
@@ -175,6 +175,7 @@ $ sudo ./ble_device_info フレンドリ名またはBDアドレス
 GATTのキャラクタリスティックはこのようにデータの仕様を細かく定義しています。
 
 //list[gobot3][サンプルコードの実行結果][plain]{
+$ sudo ./ble_device_info "Echowell BH 123456"
 2019/09/18 23:32:58 Initializing connections...
 2019/09/18 23:32:58 Initializing connection BLEClient-72B41CA7 ...
 2019/09/18 23:32:58 Initializing devices...
@@ -237,7 +238,7 @@ func main() {
 		loc, _ := heartRate.GetBodySensorLocation()
 		fmt.Println("Body sensor location:", loc)
 		fmt.Println("=== Heart Rate ===")
-		heartRate.SubscribeHeartRateMeasurement()
+		heartRate.SubscribeHeartRate()
 	}
 
 	robot := gobot.NewRobot("bleBot",
@@ -256,7 +257,7 @@ func main() {
  1. @<code>{HeartRateDriver}型
  2. @<code>{NewHeartRateDriver()}関数
  3. @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
- 4. @<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッド
+ 4. @<code>{HeartRateDriver.SubscribeHeartRate()}メソッド
 
 1と2は既存のコードと同じように実装するだけですが、
 3と4はGATTの仕様を読みながら実装していく必要がありそうです。
@@ -267,7 +268,7 @@ func main() {
 @<code>{platforms/ble/ble_battery.go}のBASドライバを参考に
 HRSドライバのひな型を用意します（@<list>{hrs1}）。
 
-//listnum[hrs1][platforms/ble/heart_rate_driver.go][go]{
+//listnum[hrs1][platforms/ble/heart_rate_driver.go（ひな型）][go]{
 package ble
 
 import (
@@ -311,15 +312,114 @@ func (b *HeartRateDriver) adaptor() BLEConnector {
 }
 
 // TODO: HeartRateDriver.GetBodySensorLocation()
-// TODO: HeartRateDriver.SubscribeHeartRateMeasurement()
+// TODO: HeartRateDriver.SubscribeHeartRate()
 //}
 
 これで、残りは@<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
-と@<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッドです。
+と@<code>{HeartRateDriver.SubscribeHeartRate()}メソッドです。
 それらは、それぞれHRSで実装することが求められているキャラクタリスティックの
 Body Sensor Location（0x2A38）とHeart Rate Measurement（0x2A37）を使用することを想定します。
 HRSは、消費カロリーの値をリセットするためのHeart Rate Control Point（0x2A39）の実装も必要としますが、
 本稿では省略します（とても簡単です）。
 
+=== GATT Characteristics
 
+HRPの各キャラクタリスティックのための定数を定義します（@<list>{hrs}）。
+
+//listnum[hrs][platforms/ble/heart_rate_driver.go（キャラクタリスティックの定義）][go]{
+// HRS(Heart Rate Service) characteristics
+const (
+	cUUIDHeartRateMeasurement  = "2a37"
+	cUUIDBodySensorLocation    = "2a38"
+	cUUIDHeartRateControlPoint = "2a39"
+)
+//}
+
+=== Body Sensor Location（0x2A38）
+
+@<code>{HeartRateDriver.GetBodySensorLocation()}メソッドのために、
+Bluetooth SIGの公式サイトからBody Sensor Location（0x2A38）の仕様を確認します（@<list>{xmlbsl}）。
+
+//list[xmlbsl][org.bluetooth.characteristic.body_sensor_location.xml（抜粋）][go]{
+<Field name="Body Sensor Location">
+    <Requirement>Mandatory</Requirement>
+    <Format>8bit</Format>
+        <Enumerations>
+            <Enumeration key="0" value="Other"/>
+            <Enumeration key="1" value="Chest"/>
+            <Enumeration key="2" value="Wrist"/>
+            <Enumeration key="3" value="Finger"/>
+            <Enumeration key="4" value="Hand"/>
+            <Enumeration key="5" value="Ear Lobe"/>
+            <Enumeration key="6" value="Foot"/>
+            <ReservedForFutureUse start="7" end="255"/>
+        </Enumerations>
+</Field>
+//}
+
+8bitのデータが1個あり、その値がセンサの位置を示すようです。
+この仕様をGoのコードに書き起こします@<fn>{spec}（@<list>{bsl}）。
+
+//footnote[spec][XMLの仕様からGoのコードを生成できれば楽なのですが...]
+
+//listnum[bsl][heart_rate_driver.go（Body Sensor Locationの定義）][go]{
+// BodySensorLocation value
+var mBodySensorLocation = map[uint8]string{
+	0: "Other",
+	1: "Chest",
+	2: "Wrist",
+	3: "Finger",
+	4: "Hand",
+	5: "Ear Lobe",
+	6: "Foot",
+}
+//}
+
+キャラクタリスティックの値を読み、Body Sensor Locationの値をstringで返す
+@<code>{HeartRateDriver.GetBodySensorLocation()}メソッドを実装します（@<list>{getbsl}）。
+
+//listnum[getbsl][heart_rate_driver.go（Body Sensor Locationの取得）][go]{
+func (b *HeartRateDriver) GetBodySensorLocation() (string, error) {
+	c, err := b.adaptor().ReadCharacteristic(cUUIDBodySensorLocation)
+	if err != nil {
+		return "", err
+	}
+	val := uint8(c[0])
+	ret := mBodySensorLocation[val]
+	if ret == "" {
+		return "", fmt.Errorf("undefined location %v", val)
+	}
+	return ret, nil
+}
+//}
+
+先ほど用意したクライアントのコード（@<code>{examples/ble_heart_rate.go}）を実行してみましょう@<fn>{co}。
+@<list>{out1}のような出力が得られるでしょう。
+
+//footnote[co][実装していない部分はコメントアウトすること]
+
+//list[out1][examples/ble_heart_rate.goの実行結果（1）][plain]{
+$ sudo ./ble_heart_rate "Echowell BH 123456"
+2019/09/19 18:29:20 Initializing connections...
+2019/09/19 18:29:20 Initializing connection BLEClient-6F2E8C08 ...
+2019/09/19 18:29:20 Initializing devices...
+2019/09/19 18:29:20 Initializing device Battery-141B8478 ...
+2019/09/19 18:29:20 Initializing device Heart Rate-5C9C877 ...
+2019/09/19 18:29:20 Robot bleBot initialized.
+2019/09/19 18:29:20 Starting Robot bleBot ...
+2019/09/19 18:29:20 Starting connections...
+2019/09/19 18:29:20 Starting connection BLEClient-6F2E8C08...
+2019/09/19 18:29:22 Starting devices...
+2019/09/19 18:29:22 Starting device Battery-141B8478...
+2019/09/19 18:29:22 Starting device Heart Rate-5C9C877...
+2019/09/19 18:29:22 Starting work...
+=== Battery Level ===
+Battery level: 86
+=== Body Sensor Location ===
+Body sensor location: Chest
+//}
+
+今回用意したセンサは胸につけることを想定しているため、
+Body Sensor Locationの値は常に1（Chest）が得られます。
+これで、Body Sensor Location（0x2A38）キャラクタリスティックの実装が完了しました。
 
