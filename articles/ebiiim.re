@@ -166,7 +166,7 @@ $ sudo ./ble_device_info "フレンドリ名またはBDアドレス"
 
 @<list>{gobot3}のような出力が得られるでしょう。
 なお、私の環境では@<code>{examples/ble_device_info.go}の33行目にある
-@<code>{info.GetPnPId()}でパニックが発生した@<fn>{pnpid}ので、33行目をコメントアウトした状態で実行しています。
+@<code>{info.GetPnPId}メソッドでパニックが発生した@<fn>{pnpid}ので、33行目をコメントアウトした状態で実行しています。
 
 //footnote[pnpid][使用したBLEデバイスがPnP ID（0x2A50）キャラクタリスティックに対応していないため]
 
@@ -255,9 +255,9 @@ func main() {
 そのため、このコードを実行するためには、次の項目を実装したHRSドライバを用意する必要があります。
 
  1. @<code>{HeartRateDriver}型
- 2. @<code>{NewHeartRateDriver()}関数
- 3. @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
- 4. @<code>{HeartRateDriver.SubscribeHeartRate()}メソッド
+ 2. @<code>{NewHeartRateDriver}関数
+ 3. @<code>{HeartRateDriver.GetBodySensorLocation}メソッド
+ 4. @<code>{HeartRateDriver.SubscribeHeartRate}メソッド
 
 1と2は既存のコードと同じように実装するだけですが、
 3と4はGATTの仕様を読みながら実装していく必要がありそうです。
@@ -315,18 +315,20 @@ func (b *HeartRateDriver) adaptor() BLEConnector {
 // TODO: HeartRateDriver.SubscribeHeartRate()
 //}
 
-これで、残りは@<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
-と@<code>{HeartRateDriver.SubscribeHeartRate()}メソッドです。
+これで、残りは@<code>{HeartRateDriver.GetBodySensorLocation}メソッド
+と@<code>{HeartRateDriver.SubscribeHeartRate}メソッドです。
 それらは、それぞれHRSで実装することが求められているキャラクタリスティックの
 Body Sensor Location（0x2A38）とHeart Rate Measurement（0x2A37）を使用することを想定します。
 HRSは、消費カロリーの値をリセットするためのHeart Rate Control Point（0x2A39）の実装も必要としますが、
-本稿では省略します（とても簡単です）。
+本稿では省略します@<fn>{hrcp}。
+
+//footnote[hrcp][とても簡単]
 
 === GATTキャラクタリスティック
 
 HRPの各キャラクタリスティックのための定数を定義します（@<list>{hrs}）。
 
-//listnum[hrs][platforms/ble/heart_rate_driver.go（キャラクタリスティックの定義）][go]{
+//listnum[hrs][heart_rate_driver.go（キャラクタリスティックの定義）][go]{
 // HRS(Heart Rate Service) characteristics
 const (
 	cUUIDHeartRateMeasurement  = "2a37"
@@ -337,7 +339,7 @@ const (
 
 === Body Sensor Location（0x2A38）
 
-@<code>{HeartRateDriver.GetBodySensorLocation()}メソッドのために、
+@<code>{HeartRateDriver.GetBodySensorLocation}メソッドのために、
 Bluetooth SIGの公式サイトからBody Sensor Location（0x2A38）の仕様を確認します（@<list>{xmlbsl}）。
 
 //list[xmlbsl][org.bluetooth.characteristic.body_sensor_location.xml（抜粋）][go]{
@@ -358,9 +360,7 @@ Bluetooth SIGの公式サイトからBody Sensor Location（0x2A38）の仕様�
 //}
 
 8bitのデータが1個あり、その値がセンサの位置を示すようです。
-この仕様をGoのコードに書き起こします@<fn>{spec}（@<list>{bsl}）。
-
-//footnote[spec][XMLの仕様からGoのコードを生成できれば楽なのですが...]
+この仕様をGoのコードに書き起こします（@<list>{bsl}）。
 
 //listnum[bsl][heart_rate_driver.go（Body Sensor Locationの定義）][go]{
 // BodySensorLocation value
@@ -376,8 +376,8 @@ var mBodySensorLocation = map[uint8]string{
 //}
 
 キャラクタリスティックの値を読み、Body Sensor Locationの値をstringで返す
-@<code>{HeartRateDriver.GetBodySensorLocation()}メソッドを実装します（@<list>{getbsl}）。
-値の読み出しには@<code>{BLEConnecter.ReadCharacteristic()}メソッドを使用します。
+@<code>{HeartRateDriver.GetBodySensorLocation}メソッドを実装します（@<list>{getbsl}）。
+値の読み出しには@<code>{BLEConnecter.ReadCharacteristic}メソッドを使用します。
 
 //listnum[getbsl][heart_rate_driver.go（Body Sensor Locationの取得）][go]{
 func (b *HeartRateDriver) GetBodySensorLocation() (string, error) {
@@ -424,11 +424,11 @@ Body sensor location: Chest
 Body Sensor Locationの値は常に1（Chest）が得られます。
 これで、Body Sensor Location（0x2A38）キャラクタリスティックの実装が完了しました。
 
-=== HeartRateMeasurement（0x2A37）
+=== Heart Rate Measurement（0x2A37）
 
 同様に、キャラクタリスティックの通知の受け付けを開始し、通知を受けたらデータを標準出力に書き出す
-@<code>{HeartRateDriver.SubscribeHeartRate()}メソッドを実装します（@<list>{gethr_proto}）。
-通知の受け付けには@<code>{BLEConnecter.Subscribe()}メソッドを使用します。
+@<code>{HeartRateDriver.SubscribeHeartRate}メソッドを実装します（@<list>{gethr_proto}）。
+通知の受け付けには@<code>{BLEConnecter.Subscribe}メソッドを使用します。
 
 //listnum[gethr_proto][heart_rate_driver.go（心拍数計測データの取得）][go]{
 func (b *HeartRateDriver) SubscribeHeartRate() error {
@@ -450,10 +450,128 @@ func (b *HeartRateDriver) SubscribeHeartRate() error {
 18:25:41 [22 69 221 134 117 114]
 //}
 
-データを解析していないのでただのバイト列ですが、
 #@# textlint-disable
+データを解析していないのでただのバイト列ですが、
 心拍にあわせて出力されているので、あと一歩ですね。
 #@# textlint-enable
 
 それでは、先ほどと同様にBluetooth SIGの公式サイトからHeart Rate Measurement（0x2A37）の仕様を確認します。
+長いので、概要のみ掲載します。なお、データのバイトオーダはリトルエンディアンと決められています。
 
+ * 最初の1バイトは各種フラグを示した値
+ ** 最下位bitは心拍数のデータサイズを示す
+ ** 下位2bit目と下位3bit目はセンサのステータスを示す
+ ** 下位4bit目は消費カロリーデータの有無を示す
+ ** 下位5bit目はRR-Intervalデータの有無を示す
+ * 各種フラグに続いて心拍数の値
+ ** 長さはフラグで指定される
+ ** 1バイトまたは2バイトの符号なし整数
+ * 心拍数に続いて消費カロリーの値
+ ** 消費カロリーのフラグが1の場合のみ
+ * 消費カロリーに続いてRR-Intervalの値
+ ** RR-Intervalのフラグが1の場合のみ
+
+まず、各種フラグをGoのコードに書き起こします@<fn>{spec}（@<list>{hrmflags}）。
+
+//footnote[spec][XMLの仕様書からGoのコードを生成できたら楽なのですが...]
+
+//listnum[hrmflags][heart_rate_driver.go（Heart Rate Measurementフラグの定義）][go]{
+// HeartRateMeasurement flags
+var mHeartRateFormat = map[uint8]string{
+	0b0: "UINT8",
+	0b1: "UINT16",
+}
+var mSensorContactStatus = map[uint8]string{
+	0b00: "not supported",
+	0b01: "not supported",
+	0b10: "supported but contact is not detected",
+	0b11: "supported and contact is detected",
+}
+var mEnergyExpandedStatus = map[uint8]string{
+	0b0: "not present",
+	0b1: "present",
+}
+var mRRInterval = map[uint8]string{
+	0b0: "not present",
+	0b1: "present (one or more)",
+}
+//}
+
+続いて、1バイトのデータから各種フラグを取り出す関数を実装します（@<list>{hrmparse}）。
+バイトから特定ビットの値を取り出すにはシフト演算とAND演算を用います（@<code>{parseHeartRateFlags}関数）。
+
+//list[hrmparse][heart_rate_driver.go（Heart Rate Measurementフラグの解析）][go]{
+type HeartRateFlags struct {
+	heartRateFormat      uint8
+	sensorContactStatus  uint8
+	energyExpendedStatus uint8
+	rrInterval           uint8
+}
+
+func parseHeartRateFlags(flags byte) HeartRateFlags {
+	var hrf HeartRateFlags
+	hrf.heartRateFormat = flags & 0b1
+	hrf.sensorContactStatus = flags >> 1 & 0b11
+	hrf.energyExpendedStatus = flags >> 3 & 0b1
+	hrf.rrInterval = flags >> 4 & 0b1
+	return hrf
+}
+
+func (hrf HeartRateFlags) String() string {
+        return fmt.Sprintf("HeartRateFormat: %v\n",
+                mHeartRateFormat[hrf.heartRateFormat]) +
+                fmt.Sprintf("SensorContactStatus: %v\n",
+                        mSensorContactStatus[hrf.sensorContactStatus]) +
+                fmt.Sprintf("EnergyExpandedStatus: %v\n",
+                        mEnergyExpandedStatus[hrf.energyExpendedStatus]) +
+                fmt.Sprintf("RR-Interval: %v",
+                        mRRInterval[hrf.rrInterval])
+}
+//}
+
+そして、@<code>{HeartRateDriver.SubscribeHeartRate}メソッドにデータ解析のためのコードを追加します（@<list>{gethr}）。
+
+//listnum[gethr][heart_rate_driver.go（心拍数の取得）][go]{
+func (b *HeartRateDriver) SubscribeHeartRate() error {
+	err := b.adaptor().Subscribe(cUUIDHeartRateMeasurement,
+		func(data []byte, e error) {
+			if e != nil {
+				fmt.Fprintf(os.Stderr, "err: %v", e)
+				return
+			}
+			hr, hrf, e := ParseHeartRate(data)
+			if e != nil {
+				fmt.Fprintf(os.Stderr, "err: %v", e)
+				return
+			}
+			fmt.Println(hrf)
+			fmt.Printf("HeartRate: %v\n", hr)
+			fmt.Println("--------------------")
+		})
+	return err
+}
+//}
+
+最後に、クライアントのコード（@<code>{examples/ble_heart_rate.go}）を実行します。
+@<list>{out3}のように、解析されたデータが得られるでしょう。
+
+//listnum[out3][examples/ble_heart_rate.goの実行結果（3）（抜粋）][go]{
+=== Heart Rate ===
+18:29:22
+HeartRateFormat: UINT8
+SensorContactStatus: supported and contact is detected
+EnergyExpandedStatus: not present
+RR-Interval: present (one or more)
+HeartRate: 66
+--------------------
+18:29:23
+HeartRateFormat: UINT8
+SensorContactStatus: supported and contact is detected
+EnergyExpandedStatus: not present
+RR-Interval: present (one or more)
+HeartRate: 67
+--------------------
+//}
+
+心拍数が正しく取得できています。
+これで、Heart Rate Measurement（0x2A37）キャラクタリスティックの実装が完了しました。
