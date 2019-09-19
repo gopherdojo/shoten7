@@ -469,7 +469,7 @@ $ mockgen -source transform.go DataRepositoryInterface >> mock/transform.go
 import (
 	"testing"
 
-	"github.com/Go/mock/gomock"
+	"github.com/golang/mock/gomock"
 	"github.com/(...)/mock_transform" // 各自のパス
 )
 
