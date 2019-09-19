@@ -1,3 +1,5 @@
+#@# author: ebiiim <mail@ebiiim.com>
+
 = GoでBluetooth Low Energy
 
 GoでBLEを触ってみたので、必要な知識をまとめました。
@@ -203,7 +205,7 @@ Manufacturer name: Echowell
 これは、BASとHRSが使用できることを想定したプログラムです。
 バッテリー残量の取得（l.26）を実施した後、センサ位置の取得（l.29）と心拍数通知の受け付け開始（l.32）を行います。
 
-//listnum[client][examples/hrs_example.go][go]{
+//listnum[client][examples/ble_heart_rate.go][go]{
 package main
 
 import (
@@ -259,12 +261,65 @@ func main() {
 1と2は既存のコードと同じように実装するだけですが、
 3と4はGATTの仕様を読みながら実装していく必要がありそうです。
 
+=== HRSドライバのひな型
 
-#@# textlint-disable
-- @<code>{HeartRateDriver}型
-- @<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
-- @<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッド
-- @<code>{NewHeartRateDriver()}関数
-#@# textlint-enable
+@<code>{platforms/ble/ble_device_info.go}のDISドライバと
+@<code>{platforms/ble/ble_battery.go}のBASドライバを参考に
+HRSドライバのひな型を用意します（@<list>{hrs1}）。
+
+//listnum[hrs1][platforms/ble/heart_rate_driver.go][go]{
+package ble
+
+import (
+	"encoding/binary"
+	"fmt"
+	"os"
+	"time"
+
+	"gobot.io/x/gobot"
+)
+
+type HeartRateDriver struct {
+	name       string
+	connection gobot.Connection
+	gobot.Eventer
+}
+
+func NewHeartRateDriver(a BLEConnector) *HeartRateDriver {
+	n := &HeartRateDriver{
+		name:       gobot.DefaultName("Heart Rate"),
+		connection: a,
+		Eventer:    gobot.NewEventer(),
+	}
+	return n
+}
+
+func (b *HeartRateDriver) Name() string { return b.name }
+
+func (b *HeartRateDriver) SetName(n string) { b.name = n }
+
+func (b *HeartRateDriver) Connection() gobot.Connection {
+    return b.connection
+}
+
+func (b *HeartRateDriver) Start() (err error) { return }
+
+func (b *HeartRateDriver) Halt() (err error) { return }
+
+func (b *HeartRateDriver) adaptor() BLEConnector {
+	return b.Connection().(BLEConnector)
+}
+
+// TODO: HeartRateDriver.GetBodySensorLocation()
+// TODO: HeartRateDriver.SubscribeHeartRateMeasurement()
+//}
+
+これで、残りは@<code>{HeartRateDriver.GetBodySensorLocation()}メソッド
+と@<code>{HeartRateDriver.SubscribeHeartRateMeasurement()}メソッドです。
+それらは、それぞれHRSで実装することが求められているキャラクタリスティックの
+Body Sensor Location（0x2A38）とHeart Rate Measurement（0x2A37）を使用することを想定します。
+HRSは、消費カロリーの値をリセットするためのHeart Rate Control Point（0x2A39）の実装も必要としますが、
+本稿では省略します（とても簡単です）。
+
 
 
