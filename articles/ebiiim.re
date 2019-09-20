@@ -77,8 +77,11 @@ Goで書かれたオープンソースのBLEライブラリがいくつかあり
 本稿ではGobotを使用しますが、検討したものを示します。
 
 #@# textlint-disable
+
 ==== paypal/gatt
+
 #@# textlint-enable
+
 BLEのPure goによる実装です。
 LinuxとmacOSに対応しています。
 ググるとブログ記事がそこそこヒットしますが、
@@ -453,8 +456,10 @@ func (b *HeartRateDriver) SubscribeHeartRate() error {
 //}
 
 #@# textlint-disable
+
 データを解析していないのでただのバイト列ですが、
 心拍にあわせて出力されているので、あと一歩ですね。
+
 #@# textlint-enable
 
 それでは、先ほどと同様にBluetooth SIGの公式サイトからHeart Rate Measurement（0x2A37）の仕様を確認します。
