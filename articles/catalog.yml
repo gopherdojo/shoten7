@@ -2,8 +2,11 @@ PREDEF:
   - preface.re
 
 CHAPS:
-  - article.re
   - ebiiim.re
+  - po3rin.re
+  - sh-tatsuno.re
+  - tenntenn.re
+  - gosagawa.re
 
 APPENDIX:
 
