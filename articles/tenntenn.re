@@ -283,7 +283,8 @@ measuregenでは、関数定義を表すノードに対して処理行うため�
 //list[inspector][抽象構文木の探索][go]{
 // 関数定義だけを対象にする
 filter := []ast.Node{ new(ast.FuncDecl), new(ast.FuncLit) }
-inspector.New([]*ast.File{f}).WithStack(filter, func(n ast.Node, push bool, stack []ast.Node) bool {
+inspector.New([]*ast.File{f}).WithStack(
+  filter, func(n ast.Node, push bool, stack []ast.Node) bool {
     if !push { return true }
     switch n := n.(type) {
     case *ast.FuncDecl:
@@ -329,7 +330,8 @@ if parent := findParent(stack); parent != nil {
   closures[parent]++ // closuresはmap[*ast.FuncDecl]int型
   name = fmt.Sprintf("%s-%d", parent.Name.Name, closures[parent])
 }
-expr, err := parser.ParseExpr(fmt.Sprintf(`measure.Start("%s").Stop()`, name))
+exprStr := fmt.Sprintf(`measure.Start("%s").Stop()`, name)
+expr, err := parser.ParseExpr(exprStr)
 if err != nil {
   log.Fatal("Error:", err)
 }
