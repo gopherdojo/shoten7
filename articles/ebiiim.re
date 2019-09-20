@@ -82,7 +82,7 @@ Goで書かれたオープンソースのBLEライブラリがいくつかあり
 
 #@# textlint-enable
 
-BLEのPure goによる実装です。
+BLEのpure goによる実装です。
 LinuxとmacOSに対応しています。
 ググるとブログ記事がそこそこヒットしますが、
 ライブラリは現在メンテナンスされていないようです。
@@ -94,7 +94,7 @@ Linuxでは正常に動作します。macOSでは、APIの変更に追いつい�
  * Repository: @<href>{https://github.com/paypal/gatt}
 
 ==== currantlabs/ble
-こちらもBLEのPure goによる実装です。
+こちらもBLEのpure goによる実装です。
 LinuxとmacOSに対応しています。
 こちらもLinuxでは正常に動作します。macOSでも動くはずですが、私の環境ではデバイスの探索がうまくできませんでした。
 
@@ -161,7 +161,7 @@ DISのキャラクタリスティックからデバイス情報を取得する
 
 //footnote[fname][スマートフォンやPCのBluetooth接続画面に表示される名前]
 //footnote[bda][Bluetoothデバイスを識別するためのIEEE 802に準拠したアドレス（MACアドレスと同じ構造）]
-//footnote[lb][iOSまたはAndroidで動作するLightBlue Explorerが便利です]
+//footnote[lb][iOSまたはAndroidで動作するLightBlue Explorerが便利]
 
 //list[gobot2][サンプルコードの実行][bash]{
 $ cd ${GOPATH}/src/gobot.io/x/gobot
@@ -205,9 +205,9 @@ Manufacturer name: Echowell
 サンプルコードの動作を確認したので、次は実際のコードを書きます。
 心拍数センサから心拍数を取得するために、HRSを一部実装します。
 
-=== クライアント
+=== GATTクライアント
 
-@<code>{examples/ble_device_info.go}と@<code>{examples/ble_battery.go}を参考にクライアントのコードを用意します（@<list>{client}）。
+@<code>{examples/ble_device_info.go}と@<code>{examples/ble_battery.go}を参考にGATTクライアントを実装します（@<list>{client}）。
 これは、BASとHRSが使用できることを想定したプログラムです。
 バッテリー残量の取得（l.26）を実施した後、センサ位置の取得（l.29）と心拍数通知の受け付け開始（l.32）を行います。
 
@@ -271,7 +271,7 @@ func main() {
 
 @<code>{platforms/ble/ble_device_info.go}のDISドライバと
 @<code>{platforms/ble/ble_battery.go}のBASドライバを参考に
-HRSドライバのひな型を用意します（@<list>{hrs1}）。
+HRSドライバのひな型を実装します（@<list>{hrs1}）。
 
 //listnum[hrs1][platforms/ble/heart_rate_driver.go（ひな型）][go]{
 package ble
@@ -478,9 +478,10 @@ func (b *HeartRateDriver) SubscribeHeartRate() error {
  * 消費カロリーに続いてRR-Intervalの値
  ** RR-Intervalのフラグが1の場合のみ
 
-まず、各種フラグをGoのコードに書き起こします@<fn>{spec}（@<list>{hrmflags}）。
+まず、各種フラグをGoのコードに書き起こします@<fn>{spec}（@<list>{hrmflags}@<fn>{binlit}）。
 
-//footnote[spec][XMLの仕様書からGoのコードを生成できたら楽なのですが...]
+//footnote[spec][XMLからコードを生成できたら...]
+//footnote[binlit][接頭辞@<code>{0b}または@<code>{0B}から始まる2進数リテラルはGo 1.13で追加された]
 
 //listnum[hrmflags][heart_rate_driver.go（Heart Rate Measurementフラグの定義）][go]{
 // HeartRateMeasurement flags
