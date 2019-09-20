@@ -2,6 +2,7 @@ PREDEF:
   - preface.re
 
 CHAPS:
+  - ebiiim.re
   - po3rin.re
   - sh-tatsuno.re
   - tenntenn.re
