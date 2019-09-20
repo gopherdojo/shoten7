@@ -2,17 +2,20 @@
 = 静的解析を使ったISUCON用ツールの開発
 
 == はじめに
+
 株式会社メルペイのバックエンドエンジニアの@tenntenn@<fn>{tenntenn}です。
+本稿では、筆者がISUCON@<fn>{isucon}という競技のために開発したツールについて解説します。
+
+//footnote[tenntenn][@<href>{https://tenntenn.dev/}]
+//footnote[isucon][@<href>{http://isucon.net/}]
 
 == ISUCONに向けた準備
 
 === ISUCONとは
 
-ISUCON@<fn>{isucon}とは、1人〜3人のチームでお題となるWebサービスを決められたレギュレーションの中で
+ISUCONとは、1人〜3人のチームでお題となるWebサービスを決められたレギュレーションの中で
 限界まで高速化を図るチューニングバトルです。
 予選と本戦があり、予選はオンラインで行われます。
-
-//footnote[isucon][@<href>{http://isucon.net/}]
 
 チューニング行うために、次のような作業を行うでしょう。
 
