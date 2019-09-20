@@ -2,18 +2,18 @@
 
 = GoでBluetooth Low Energy
 
-GoでBLEを触ってみたので、必要な知識をまとめました。
+GoでBluetooth Low Energy（以降BLEとします）を触ってみたので、必要な知識をまとめました。
 BLEとGATTの概要を確認した後、
 Gobotフレームワークを用いて心拍数センサから
 取得したデータを表示するプログラムを作成することで
 GoでBLEを扱う方法の一例を確認します。
 Raspberry Piなど、GoとBluetoothの両方が使用できる端末があればいろいろ遊べそうです。
 
-== BLE（Bluetooth Low Energy）
+== Bluetooth Low Energy
 
-Bluetooth Low Energy（以降BLEとします）とは、
+BLEとは、
 Bluetooth 4.0以降の機能で、少ない消費電力で動作する通信モードです。
-従来のBluetooth（Bluetooth Classic）との互換性はありませんが、
+Bluetooth Classic（従来のBluetooth）との互換性はありませんが、
 次に示す優れたスペックによりIoTを支える技術として広く定着しています。
 
  * ボタン電池で2年間動作可能
@@ -29,13 +29,13 @@ GATTでは、通信を開始する側をクライアントと、クライアン�
 たとえば、本稿ではGoのプログラムを用いて心拍数センサからデータを取得しますが、
 この場合はGoのプログラムを動作させる機器がクライアントで心拍数センサがサーバです。
 
-=== GATT（Generic Attribute Profile）
+=== Generic Attribute Profile
 
 GATTは、次に示す概念により、クライアントによるデータの読み書きとサーバによる通知のためのデータモデルを定義します。
 
 ==== キャラクタリスティック（Characteristic）
 
-UUIDで区別される@<fn>{uuid}、データをやりとりするための仕様です。
+UUIDで識別される@<fn>{uuid}、データをやりとりするための仕様です。
 例を示します。
 
  * Battery Level（0x2A19）: バッテリー残量を伝達するためのデータ形式
@@ -59,7 +59,7 @@ UUIDで区別される@<fn>{uuid}、データをやりとりするための仕�
  ** サーバはHRSとDIS（任意）を実装すること
 
 //footnote[dis][Device Information Service]
-//footnote[uuid][Bluetooth SIGが策定したキャラクタリスティックは、（通信量を減らすために）短縮表記したUUIDを用いることができる]
+//footnote[uuid][Bluetooth SIGが策定したキャラクタリスティックは、（通信量の削減を目的とした）短縮表記したUUIDを用いることができる]
 
 前述を含めたいくつかのキャラクタリスティック、サービス、プロファイルをBluetooth SIGが策定しています@<fn>{sig1}@<fn>{sig2}。
 これによりBLEデバイス間の互換性を高めています。
@@ -154,9 +154,11 @@ DISのキャラクタリスティックからデバイス情報を取得する
 @<code>{examples/ble_device_info.go}を実行します（@<list>{gobot2}）。
 
 サンプルコードでは、引数にフレンドリ名@<fn>{fname}またはBDアドレス@<fn>{bda}を与えることでデバイスの特定を行います。
+実行する前に、BLEテストツール@<fn>{lb}などで使用したいBLEデバイスの情報を確認しておくことを推奨します。
 
 //footnote[fname][スマートフォンやPCのBluetooth接続画面に表示される名前]
 //footnote[bda][Bluetoothデバイスを識別するためのIEEE 802に準拠したアドレス（MACアドレスと同じ構造）]
+//footnote[lb][iOSまたはAndroidで動作するLightBlue Explorerが便利です]
 
 //list[gobot2][サンプルコードの実行][bash]{
 $ cd ${GOPATH}/src/gobot.io/x/gobot
@@ -262,7 +264,7 @@ func main() {
 1と2は既存のコードと同じように実装するだけですが、
 3と4はGATTの仕様を読みながら実装していく必要がありそうです。
 
-=== HRSドライバのひな型
+=== HRSドライバ
 
 @<code>{platforms/ble/ble_device_info.go}のDISドライバと
 @<code>{platforms/ble/ble_battery.go}のBASドライバを参考に
