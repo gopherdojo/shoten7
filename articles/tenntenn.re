@@ -307,7 +307,8 @@ inspector.New([]*ast.File{f}).WithStack(
 その際、すでに先頭に該当の処理が差し込まれていないか@<code>{hasMeasure}関数でチェックしています。
 
 //list[FuncDecl][名前付き関数の処理][go]{
-expr, err := parser.ParseExpr(fmt.Sprintf(`measure.Start("%s").Stop()`, n.Name.Name))
+exprStr := fmt.Sprintf(`measure.Start("%s").Stop()`, n.Name.Name)
+expr, err := parser.ParseExpr(exprStr)
 if err != nil {
   log.Fatal("Error:", err)
 }
