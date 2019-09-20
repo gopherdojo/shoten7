@@ -323,7 +323,7 @@ n.Body.List = append([]ast.Stmt{deferStmt}, n.Body.List...)
 @<list>{FuncLit}では無名関数からは関数名が取れないため、
 親の関数名に連番を付与した文字列を@<code>{measure.Start}関数の引数に渡しています。
 
-//list[FuncLit][無名関数の処理]][go]{
+//list[FuncLit][無名関数の処理][go]{
 name := "NONAME"
 if parent := findParent(stack); parent != nil {
   closures[parent]++ // closuresはmap[*ast.FuncDecl]int型
