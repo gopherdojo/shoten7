@@ -84,9 +84,9 @@ Goで書かれたオープンソースのBLEライブラリがいくつかあり
 
 BLEのpure goによる実装です。
 LinuxとmacOSに対応しています。
-ググるとブログ記事がそこそこヒットしますが、
+ググると記事がいくつかヒットしますが、
 ライブラリは現在メンテナンスされていないようです。
-Linuxでは正常に動作します。macOSでは、APIの変更に追いついていないため、使うことが困難です。
+Linuxでは正常に使用できます。macOSでは、APIの変更に追いついていないため、使うことが困難です。
 
  * Star: 800+
  * Last commit: October 2015
@@ -96,7 +96,7 @@ Linuxでは正常に動作します。macOSでは、APIの変更に追いつい�
 ==== currantlabs/ble
 こちらもBLEのpure goによる実装です。
 LinuxとmacOSに対応しています。
-こちらもLinuxでは正常に動作します。macOSでも動くはずですが、私の環境ではデバイスの探索がうまくできませんでした。
+こちらもLinuxでは正常に使用できます。macOSでも使えるはずですが、私の環境ではデバイスの探索がうまくできませんでした。
 
  * Star: 150+
  * Last commit: December 2017
@@ -116,8 +116,8 @@ BlueZを前提としているため、今回は検証しませんでした。
 
 ==== Gobot
 IoTやロボティクスのためのフレームワークです。
-@<code>{gobot.io/x/gobot/platforms/ble}は@<code>{currantlabs/ble}をフォークしたライブラリ@<fn>{goble}を使用しています。
-公式サイト@<fn>{gobot}のドキュメントが豊富です。本稿のソースコードはGobotを使用します。
+BLEの部分（@<code>{gobot.io/x/gobot/platforms/ble}）は@<code>{currantlabs/ble}をフォークしたライブラリ@<fn>{goble}を使用しています。
+公式サイト@<fn>{gobot}のドキュメントが豊富なので、本稿で採用しました。
 
 //footnote[goble][@<href>{https://github.com/go-ble/ble}]
 //footnote[gobot][@<href>{https://gobot.io/}]
@@ -153,7 +153,7 @@ $ go get -d -u gobot.io/x/gobot/...
  * @<code>{gobot.io/x/gobot/platforms/ble/}にBLE関連のコードがある
 
 では、サンプルコードで動作を確認しましょう。
-DISのキャラクタリスティックからデバイス情報を取得する
+DISの各キャラクタリスティックからデバイス情報を取得する
 @<code>{examples/ble_device_info.go}を実行します（@<list>{gobot2}）。
 
 サンプルコードでは、引数にフレンドリ名@<fn>{fname}またはBDアドレス@<fn>{bda}を与えることでデバイスの特定を行います。
@@ -169,14 +169,14 @@ $ go build examples/ble_device_info.go
 $ sudo ./ble_device_info "フレンドリ名またはBDアドレス"
 //}
 
-@<list>{gobot3}のような出力が得られるでしょう。
+サンプルコードを実行すると、@<list>{gobot3}のような出力が得られるでしょう。
 なお、私の環境では@<code>{examples/ble_device_info.go}の33行目にある
 @<code>{info.GetPnPId}メソッドでパニックが発生した@<fn>{pnpid}ので、33行目をコメントアウトした状態で実行しています。
 
 //footnote[pnpid][使用したBLEデバイスがPnP ID（0x2A50）キャラクタリスティックに対応していないため]
 
 ログの@<code>{Model number}や@<code>{Firmware rev}は、
-それぞれModel Number String（0x2A24）キャラクタリスティックとFirmware Revision String（0x2A26）キャラクタリスティックから取得したデータです。
+それぞれDISで実装することが求められるキャラクタリスティックのModel Number String（0x2A24）とFirmware Revision String（0x2A26）から取得したデータです。
 GATTのキャラクタリスティックはこのようにデータの仕様を細かく定義しています。
 
 //list[gobot3][サンプルコードの実行結果][plain]{
@@ -271,7 +271,7 @@ func main() {
 
 @<code>{platforms/ble/ble_device_info.go}のDISドライバと
 @<code>{platforms/ble/ble_battery.go}のBASドライバを参考に
-HRSドライバのひな型を実装します（@<list>{hrs1}）。
+HRSドライバを実装します（@<list>{hrs1}）。
 
 //listnum[hrs1][platforms/ble/heart_rate_driver.go（ひな型）][go]{
 package ble
@@ -322,12 +322,12 @@ func (b *HeartRateDriver) adaptor() BLEConnector {
 
 これで、残りは@<code>{HeartRateDriver.GetBodySensorLocation}メソッド
 と@<code>{HeartRateDriver.SubscribeHeartRate}メソッドです。
-それらは、それぞれHRSで実装することが求められているキャラクタリスティックの
+これらは、それぞれHRSで実装することが求められるキャラクタリスティックの
 Body Sensor Location（0x2A38）とHeart Rate Measurement（0x2A37）を使用することを想定します。
 HRSは、消費カロリーの値をリセットするためのHeart Rate Control Point（0x2A39）の実装も必要としますが、
 本稿では省略します@<fn>{hrcp}。
 
-//footnote[hrcp][とても簡単]
+//footnote[hrcp][実装はとても簡単]
 
 === GATTキャラクタリスティック
 
@@ -342,7 +342,7 @@ const (
 )
 //}
 
-=== Body Sensor Location（0x2A38）
+=== Body Sensor Location
 
 @<code>{HeartRateDriver.GetBodySensorLocation}メソッドのために、
 Bluetooth SIGの公式サイトからBody Sensor Location（0x2A38）の仕様を確認します（@<list>{xmlbsl}）。
@@ -404,7 +404,7 @@ func (b *HeartRateDriver) GetBodySensorLocation() (string, error) {
 
 //footnote[co][実装していない部分はコメントアウトすること]
 
-//list[out1][examples/ble_heart_rate.goの実行結果（1）][plain]{
+//listnum[out1][examples/ble_heart_rate.goの実行結果（1）][plain]{
 $ sudo ./ble_heart_rate "Echowell BH 123456"
 2019/09/19 18:29:20 Initializing connections...
 2019/09/19 18:29:20 Initializing connection BLEClient-6F2E8C08 ...
@@ -425,11 +425,12 @@ Battery level: 86
 Body sensor location: Chest
 //}
 
+Gobotで用意されたBASドライバと先ほど実装したHRSドライバを使用していることがわかります（l.5-l.6）。
 今回用意したセンサは胸につけることを想定しているため、
-Body Sensor Locationの値は常に1（Chest）が得られます。
-これで、Body Sensor Location（0x2A38）キャラクタリスティックの実装が完了しました。
+Body Sensor Locationの値は常に1（Chest）が得られます（l.18）。
+これで、Body Sensor Locationキャラクタリスティックの実装が完了しました。
 
-=== Heart Rate Measurement（0x2A37）
+=== Heart Rate Measurement
 
 同様に、キャラクタリスティックの通知の受け付けを開始し、通知を受けたらデータを標準出力に書き出す
 @<code>{HeartRateDriver.SubscribeHeartRate}メソッドを実装します（@<list>{gethr_proto}）。
@@ -469,14 +470,14 @@ func (b *HeartRateDriver) SubscribeHeartRate() error {
  ** 最下位bitは心拍数のデータサイズを示す
  ** 下位2bit目と下位3bit目はセンサのステータスを示す
  ** 下位4bit目は消費カロリーデータの有無を示す
- ** 下位5bit目はRR-Intervalデータの有無を示す
+ ** 下位5bit目はR-R間隔データの有無を示す
  * 各種フラグに続いて心拍数の値
  ** 長さはフラグで指定される
  ** 1バイトまたは2バイトの符号なし整数
  * 心拍数に続いて消費カロリーの値
  ** 消費カロリーのフラグが1の場合のみ
- * 消費カロリーに続いてRR-Intervalの値
- ** RR-Intervalのフラグが1の場合のみ
+ * 消費カロリーに続いてR-R間隔の値
+ ** R-R間隔のフラグが1の場合のみ
 
 まず、各種フラグをGoのコードに書き起こします@<fn>{spec}（@<list>{hrmflags}@<fn>{binlit}）。
 
@@ -563,7 +564,7 @@ func (b *HeartRateDriver) SubscribeHeartRate() error {
 最後に、クライアントのコード（@<code>{examples/ble_heart_rate.go}）を実行します。
 @<list>{out3}のように、解析されたデータが得られるでしょう。
 
-//listnum[out3][examples/ble_heart_rate.goの実行結果（3）（抜粋）][go]{
+//list[out3][examples/ble_heart_rate.goの実行結果（3）（抜粋）][go]{
 === Heart Rate ===
 18:29:22
 HeartRateFormat: UINT8
@@ -582,7 +583,7 @@ HeartRate: 67
 //}
 
 心拍数が正しく取得できています。
-これで、Heart Rate Measurement（0x2A37）キャラクタリスティックの実装が完了しました。
+これで、Heart Rate Measurementキャラクタリスティックの実装が完了しました。
 
 == 結び
 
