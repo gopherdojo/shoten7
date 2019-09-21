@@ -317,10 +317,10 @@ Err構造体には項目を増やすことができ、また内部にerrorイン
 ただ、個人的な感想としてはopを毎回指定しなければ行けないのが冗長ではと思っています。
 runtimeで呼び出し元の関数名や行数は取得できるのでopを毎回定義するのではなく、runtimeを利用するという方法でもよいのではないでしょうか。
 
-== athensのエラーハンドリング
+== Athensのエラーハンドリング
 
-GopherCon 2019で発表されたathensというプロジェクト@<fn>{athens}でもerror handling in goで述べられている方法と同様のやり方が取られています。@<fn>{athens_errorhandling}
-それもそのはずで、athensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
+GopherCon 2019で発表されたAthensというプロジェクト@<fn>{athens}でもerror handling in goで述べられている方法と同様のやり方が取られています。@<fn>{athens_errorhandling}
+それもそのはずで、Athensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
 error handling in goで発表された内容の詳細な実例として見ることができるでしょう。
 
 //emlist[エラー構造体（/pkg/errors/errors.go）][go]{
