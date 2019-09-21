@@ -124,7 +124,7 @@ func main() {
 
 === 行列の基本演算
 
-@<code>{gonum/mat}を初めて使う人のために行列演算の実装方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonのように演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
+@<code>{gonum/mat}を初めて使う人のために行列演算の実装方法を少し紹介します。まずは基本の足し算引き算です。GoにはPythonにあるような演算子オーバーロードがないので行列の演算も関数やメソッドを介して行います。
 
 //list[add][行列の足し引き][go]{
 func main() {
@@ -455,7 +455,8 @@ func TestSigmoid(t *testing.T) {
     for _, tt := range tests {
         tt := tt
         t.Run(tt.name, func(t *testing.T) {
-            if got := Sigmoid(tt.input); !mat.EqualApprox(got, tt.want, 1e-14) {
+            got := Sigmoid(tt.input)
+            if !mat.EqualApprox(got, tt.want, 1e-14) {
                 t.Fatalf("want = %d, got = %d", tt.want, got)
             }
         })
@@ -472,20 +473,12 @@ func TestSigmoid(t *testing.T) {
 
 //list[slice][Sliceメソッドのソースコード][go]{
 func (m *Dense) Slice(i, k, j, l int) Matrix {
-	mr, mc := m.Caps()
-	if i < 0 || mr <= i || j < 0 || mc <= j || k < i || mr < k || l < j || mc < l {
-		if i == k || j == l {
-			panic(ErrZeroLength)
-		}
-		panic(ErrIndexOutOfRange)
-	}
-	t := *m
-	t.mat.Data = t.mat.Data[i*t.mat.Stride+j : (k-1)*t.mat.Stride+l]
-	t.mat.Rows = k - i
-	t.mat.Cols = l - j
-	t.capRows -= i
-	t.capCols -= j
-	return &t
+	// ...
+    if i == k || j == l {
+        panic(ErrZeroLength)
+    }
+    panic(ErrIndexOutOfRange)
+	// ...
 }
 //}
 
@@ -554,8 +547,6 @@ package blas64
 
 var blas64 blas.Float64 = gonum.Implementation{}
 
-// Use sets the BLAS float64 implementation to be used by subsequent BLAS calls.
-// The default implementation is
 // gonum.org/v1/gonum/blas/gonum.Implementation.
 func Use(b blas.Float64) {
     blas64 = b
