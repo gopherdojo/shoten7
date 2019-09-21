@@ -115,9 +115,14 @@ BlueZを前提としているため、今回は検証しませんでした。
  * Repository: @<href>{https://github.com/muka/go-bluetooth}
 
 ==== Gobot
+
+#@# textlint-disable
+
 IoTやロボティクスのためのフレームワークです。
 BLEの部分（@<code>{gobot.io/x/gobot/platforms/ble}）は@<code>{currantlabs/ble}をフォークしたライブラリ@<fn>{goble}を使用しています。
 公式サイト@<fn>{gobot}のドキュメントが豊富なので、本稿で採用しました。
+
+#@# textlint-enable
 
 //footnote[goble][@<href>{https://github.com/go-ble/ble}]
 //footnote[gobot][@<href>{https://gobot.io/}]
