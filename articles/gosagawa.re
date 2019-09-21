@@ -4,7 +4,7 @@
 
 アプリケーションを実装するにあたり、エラーハンドリングは非常に重要です。しかし、エラー管理がデフォルトでは非常にシンプルです。
 カスタマイズをしなければ不便であるところは欠点でありつつもの、逆にしっかりとカスタマイズをすれば非常に強力なツールとなりえます。
-この記事ではpkg/errors@<fn>{errors}ライブラリや、GopherCon2019のセッション"Handling go errors"@<fn>{handling_go_errors}、
+この記事ではpkg/errors@<fn>{errors}ライブラリや、GopherCon 2019のセッション"Handling go errors"@<fn>{handling_go_errors}、
 そしてAthensプロジェクト@<fn>{athens}でのエラーハンドリングの実例を通して、実用にみあったエラーハンドリング処理の書き方をお伝えできればと思っています。
 
 //footnote[errors][@<href>{https://godoc.org/github.com/pkg/errors}]
@@ -218,7 +218,7 @@ runtime.goexit /usr/local/go/src/runtime/asm_amd64p32.s 523
 == xerrors、Go 1.13以降のerrorsについて
 @<code>{xerrors}@<fn>{xerrors}については@<code>{pkg/errors}を使ったやり方から公式でも検討された経緯もあり、スタックトレースを取得したりエラーをラップしたりできます。
 AsやIs、UnWrapなどの便利な関数も利用できるようになり公式な@<code>{pkg/errors}の上記互換となります。
-実際にGo1.13では@<code>{xerrors}が@<code>{errors}として採用され、スタックトレース表示の機能を除きエラーのラップやIsメソッド、Asメソッドが利用できるようになっています。
+実際にGo 1.13では@<code>{xerrors}が@<code>{errors}として採用され、スタックトレース表示の機能を除きエラーのラップやIsメソッド、Asメソッドが利用できるようになっています。
 
 //footnote[xerrors][@<href>{https://godoc.org/golang.org/x/xerrors}]
 
@@ -233,7 +233,7 @@ xerrorsは明示的にWrapして正しく構文を記述しないとスタック
 
 == error handling in goで述べられていた解決策
 
-GopherCon2019では、pkg/errorsやxerrors使わずにエラーを階層化して管理する手法が述べられていました。
+GopherCon 2019では、pkg/errorsやxerrors使わずにエラーを階層化して管理する手法が述べられていました。
 ここからは実際のサンプルを@<href>{https://github.com/gosagawa/go-error-handling-sample/}にも載せていますので合わせて確認ください。
 
 エラー用の構造体とその処理を定義すると次のようになります。
@@ -319,7 +319,7 @@ runtimeで呼び出し元の関数名や行数は取得できるのでopを毎�
 
 == athensのエラーハンドリング
 
-GopherCon2019で発表されたathensというプロジェクト@<fn>{athens}でもerror handling in goで述べられている方法と同様のやり方が取られています。@<fn>{athens_errorhandling}
+GopherCon 2019で発表されたathensというプロジェクト@<fn>{athens}でもerror handling in goで述べられている方法と同様のやり方が取られています。@<fn>{athens_errorhandling}
 それもそのはずで、athensでのエラーハンドリング部分はerror handling in goの発表者と同じ方によって書かれています。
 error handling in goで発表された内容の詳細な実例として見ることができるでしょう。
 
